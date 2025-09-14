@@ -1,7 +1,7 @@
 AI Fitness Coach
 A real-time, browser-based personal trainer that uses the orchestration of three distinct AI models to provide live form correction, rep counting, and voice-activated control.
 
-This project was developed as a submission for the CM3070 Project module, based on the "Orchestrating AI models to achieve a goal" template. It is a full-stack web application built with React, Flask, and TensorFlow.js.
+This project was developed based on the "Orchestrating AI models to achieve a goal" template. It is a full-stack web application built with React, Flask, and TensorFlow.js.
 
 Live Demo Features
 
