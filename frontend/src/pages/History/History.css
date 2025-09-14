@@ -1,0 +1,82 @@
+.history-container {
+    width: 90vw;
+    max-width: 1200px;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    overflow-y: auto;
+}
+
+.history-header {
+    text-align: center;
+    border-bottom: 1px solid #444;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+.history-header h1 {
+    margin: 0;
+    font-size: 2.2rem;
+}
+
+.no-history {
+    text-align: center;
+    font-size: 1.2rem;
+    margin-top: 50px;
+}
+
+.history-content {
+    display: flex;
+    gap: 30px;
+}
+
+.chart-section {
+    flex: 2;
+    padding: 20px;
+    background-color: #2a2a2a;
+    border-radius: 8px;
+}
+
+.exercise-select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    background-color: #333;
+    color: #e0e0e0;
+    border: 1px solid #444;
+    font-size: 1rem;
+}
+
+.session-list {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 70vh;
+}
+
+.session-card {
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.session-card h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #444;
+    padding-bottom: 10px;
+}
+
+.session-card ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.session-card li {
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+}

@@ -1,0 +1,122 @@
+.workout-container {
+  display: flex;
+  flex-direction: column;
+  width: 95vw;
+  height: 95vh;
+  max-width: 1400px;
+}
+
+.workout-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #1e1e1e;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.workout-header h1 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.user-info {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.workout-main {
+  display: flex;
+  flex-grow: 1;
+  gap: 20px;
+}
+
+.video-and-controls {
+  flex: 3; /* Takes up 3/4 of the space */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.video-feed-container {
+  flex-grow: 1;
+  background-color: #000;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative; /* crucial for alignment */
+}
+/* Make both the canvas and webcam fill the container */
+.video-feed-container > canvas, .video-feed-container > video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px; /* Ensure canvas has rounded corners too */
+}
+.controls-container {
+  padding: 15px;
+  background-color: #1e1e1e;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+}
+
+.status-panel-container {
+  flex: 1; /* Takes up 1/4 of the space */
+  padding: 20px;
+  background-color: #1e1e1e;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+select {
+  padding: 10px;
+  border-radius: 5px;
+  background-color: #333;
+  color: #e0e0e0;
+  border: 1px solid #444;
+  font-size: 1rem;
+}
+
+.counter-display {
+  background-color: #333;
+  border-radius: 8px;
+  padding: 10px 20px;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.counter-display h3 {
+  margin: 0;
+  font-size: 2rem;
+  color: #00FF00; /* Green color for the counter */
+}
+.btn-voice {
+  background-color: #9c27b0; /* Purple color */
+  color: white;
+}
+
+.btn-voice:hover {
+  background-color: #7b1fa2;
+}
+.rest-display {
+    text-align: center;
+    padding: 40px 20px;
+    background-color: #007bff;
+    border-radius: 8px;
+    color: white;
+}
+
+.rest-display h2 {
+    margin: 0 0 10px 0;
+}
+
+.rest-display h3 {
+    margin: 0;
+    font-size: 2.5rem;
+}
