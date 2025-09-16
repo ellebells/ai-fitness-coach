@@ -25,12 +25,16 @@ export const useWorkoutManager = (isWorkoutActive, currentExercise, isFormCorrec
         if (isFinalLog) return logEntry;
 
         // Otherwise, add it to the session log state, preventing duplicates
-        if (!sessionLog.some(log => log.timestamp === logEntry.timestamp)) {
-             setSessionLog(prevLog => [...prevLog, logEntry]);
-        }
+        setSessionLog(prevLog => {
+          // Check if entry already exists to prevent duplicates
+          if (!prevLog.some(log => log.timestamp === logEntry.timestamp)) {
+            return [...prevLog, logEntry];
+          }
+          return prevLog;
+        });
     }
     return null; // Return null if not the final log
-  }, [currentExercise, repCount, timer, sessionLog]);
+  }, [currentExercise, repCount, timer]); // Removed sessionLog from dependencies
 
   // This effect manages the timer for duration-based exercises
   useEffect(() => {

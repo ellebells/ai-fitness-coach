@@ -6,6 +6,7 @@ import StatusPanel from '../../components/StatusPanel';
 import WorkoutModal from '../../components/WorkoutModal';
 import { useWorkoutManager } from '../../hooks/useWorkoutManager';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
+import { speak } from '../../utils/speechUtils';
 import './Workout.css';
 
 // --- Data Structures ---
@@ -45,20 +46,23 @@ const workoutTemplates = {
 function Workout() {
     const navigate = useNavigate();
     const [userName, setUserName] = useState('');
-    const [feedback, setFeedback] = useState({ feedback: 'Select an exercise or routine to start.', feedbackColor: 'white' });
+    const [feedback, setFeedback] = useState({ feedback: 'Select an exercise or routine to start.', feedbackColor: 'green' });
     const [isWorkoutActive, setIsWorkoutActive] = useState(false);
     const [currentExercise, setCurrentExercise] = useState(allExercises[0]);
     
+    // State for workout routines
     const [showRoutineModal, setShowRoutineModal] = useState(false);
     const [activeRoutine, setActiveRoutine] = useState(null);
     const [exerciseIndex, setExerciseIndex] = useState(0);
     const [isResting, setIsResting] = useState(false);
     const [restTimeLeft, setRestTimeLeft] = useState(0);
     
+    // State to track if the user's form is correct for the timer
     const [isFormCorrect, setIsFormCorrect] = useState(false);
 
+    // Pass the new state to the hook
     const { repCount, setRepCount, timer, stage, setStage, sessionLog, setSessionLog, logExercise } = useWorkoutManager(isWorkoutActive, currentExercise, isFormCorrect);
-    const { isListening, command, startListening } = useSpeechRecognition();
+    const { isListening, command, startListening, clearCommand } = useSpeechRecognition();
     const [transcription, setTranscription] = useState('Click "Voice Command" to start.');
     
     useEffect(() => {
@@ -77,9 +81,16 @@ function Workout() {
 
     const handlePoseUpdate = (poseFeedback) => {
         if (isWorkoutActive && !isResting) {
+            console.log('Pose feedback received:', poseFeedback);
             setFeedback(poseFeedback);
-            if (poseFeedback.repCount !== undefined) setRepCount(poseFeedback.repCount);
-            if (poseFeedback.stage) setStage(poseFeedback.stage);
+            if (poseFeedback.repCount !== undefined) {
+                console.log(`Setting rep count to: ${poseFeedback.repCount}`);
+                setRepCount(poseFeedback.repCount);
+            }
+            if (poseFeedback.stage) {
+                console.log(`Setting stage to: ${poseFeedback.stage}`);
+                setStage(poseFeedback.stage);
+            }
             if (poseFeedback.isCorrectForm !== undefined) setIsFormCorrect(poseFeedback.isCorrectForm);
         }
     };
@@ -99,6 +110,7 @@ function Workout() {
             setIsWorkoutActive(false);
             setActiveRoutine(null);
             setFeedback({ feedback: 'Routine complete! Amazing work!', feedbackColor: 'green' });
+            speak("Routine complete. Amazing work!");
             return;
         }
         const current = activeRoutine.exercises[exerciseIndex];
@@ -111,25 +123,29 @@ function Workout() {
     const handleWorkoutToggle = useCallback(() => {
         setIsWorkoutActive(prev => !prev);
     }, []);
-
+    
+    // Effect to handle workout session logging and state reset
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
-      if (!isWorkoutActive) {
+      if (!isWorkoutActive && (sessionLog.length > 0 || logExercise(true))) {
           const user = localStorage.getItem('userName') || 'guest';
           const history = JSON.parse(localStorage.getItem(`${user}_history`)) || [];
           const finalLog = logExercise(true); 
           let completeLog = [...sessionLog];
-          if(finalLog) completeLog.push(finalLog);
+          if(finalLog && !sessionLog.find(l => l.timestamp === finalLog.timestamp)) {
+              completeLog.push(finalLog);
+          }
           
           if (completeLog.length > 0) {
             const newHistory = [...history, { date: new Date().toISOString(), workout: completeLog }];
             localStorage.setItem(`${user}_history`, JSON.stringify(newHistory));
           }
-      } else {
+      } else if (isWorkoutActive) {
         setSessionLog([]);
         setIsFormCorrect(false);
         setFeedback({ feedback: 'Starting workout...', feedbackColor: 'white' });
       }
-    }, [isWorkoutActive, logExercise, sessionLog, setSessionLog]);
+    }, [isWorkoutActive, logExercise]); // Removed sessionLog and setSessionLog to prevent infinite loop
     
     useEffect(() => {
         if (!isWorkoutActive || !activeRoutine || isResting) return;
@@ -153,6 +169,7 @@ function Workout() {
                 const nextIndex = exerciseIndex + 1;
                 setExerciseIndex(nextIndex);
                 setCurrentExercise(activeRoutine.exercises[nextIndex]);
+                speak("Let's begin.");
             }
         }
     }, [isResting, restTimeLeft, activeRoutine, exerciseIndex, isWorkoutActive]);
@@ -175,26 +192,92 @@ function Workout() {
     }, [isResting]);
 
     useEffect(() => {
-        if (command && !isListening) {
-            setTranscription(command.transcription || 'Could not hear command.');
-            switch(command.intent) {
-                case 'START_WORKOUT': if (!isWorkoutActive) handleWorkoutToggle(); break;
-                case 'STOP_WORKOUT': if (isWorkoutActive) handleWorkoutToggle(); break;
-                case 'SKIP_EXERCISE':
-                    if (isResting) handleSkipRest();
-                    else handleSkipExercise();
-                    break;
-                case 'ADD_REST': if (isResting) handleAddRestTime(); break;
-                case 'SWITCH_EXERCISE':
-                    if (command.entity && !isWorkoutActive) {
-                        const foundExercise = allExercises.find(ex => ex.name.toLowerCase().replace('-', ' ') === command.entity.toLowerCase());
-                        if (foundExercise) handleExerciseChange(foundExercise.name);
-                    }
-                    break;
-                default: break;
+        if (command) {
+            console.log('Command received:', command);
+            if (isListening) {
+                setTranscription('Listening...');
+            } else {
+                setTranscription(command.transcription || 'Could not hear command.');
+                console.log('Processing command intent:', command.intent);
+                
+                // Process the command
+                switch(command.intent) {
+                    case 'START_WORKOUT': 
+                        console.log('START_WORKOUT command detected, isWorkoutActive:', isWorkoutActive);
+                        if (!isWorkoutActive) {
+                            console.log('Starting workout...');
+                            handleWorkoutToggle();
+                        } else {
+                            console.log('Workout already active, ignoring start command');
+                        }
+                        break;
+                    case 'STOP_WORKOUT': 
+                        console.log('STOP_WORKOUT command detected, isWorkoutActive:', isWorkoutActive);
+                        if (isWorkoutActive) {
+                            console.log('Stopping workout...');
+                            handleWorkoutToggle();
+                        } else {
+                            console.log('Workout not active, ignoring stop command');
+                        }
+                        break;
+                    case 'SKIP_EXERCISE':
+                        console.log('SKIP_EXERCISE command detected');
+                        if (isResting) handleSkipRest();
+                        else handleSkipExercise();
+                        break;
+                    case 'ADD_REST': 
+                        console.log('ADD_REST command detected');
+                        if (isResting) handleAddRestTime(); 
+                        break;
+                    case 'START_ROUTINE':
+                        console.log('START_ROUTINE command detected, entity:', command.entity);
+                        if(command.entity && !isWorkoutActive) startRoutine(command.entity);
+                        break;
+                    case 'SWITCH_EXERCISE':
+                        console.log('SWITCH_EXERCISE command detected, entity:', command.entity);
+                        if (command.entity && !isWorkoutActive) {
+                            console.log('Looking for exercise:', command.entity);
+                            console.log('Available exercises:', allExercises.map(ex => ex.name));
+                            
+                            // Try exact match first
+                            let foundExercise = allExercises.find(ex => ex.name === command.entity);
+                            
+                            // If no exact match, try case-insensitive
+                            if (!foundExercise) {
+                                foundExercise = allExercises.find(ex => 
+                                    ex.name.toLowerCase() === command.entity.toLowerCase()
+                                );
+                            }
+                            
+                            // If still no match, try with space/dash variations
+                            if (!foundExercise) {
+                                foundExercise = allExercises.find(ex => 
+                                    ex.name.toLowerCase().replace('-', ' ') === command.entity.toLowerCase().replace('-', ' ')
+                                );
+                            }
+                            
+                            console.log('Found exercise:', foundExercise);
+                            if (foundExercise) {
+                                console.log('Switching to exercise:', foundExercise.name);
+                                handleExerciseChange(foundExercise.name);
+                            } else {
+                                console.log('Exercise not found!');
+                            }
+                        } else {
+                            console.log('Cannot switch exercise - missing entity or workout active');
+                        }
+                        break;
+                    default: 
+                        console.log('Unknown command intent:', command.intent);
+                        break;
+                }
+                
+                // Clear the command after processing to prevent it from persisting
+                console.log('Clearing command after processing');
+                clearCommand();
             }
         }
-    }, [command, isListening, isWorkoutActive, isResting, handleWorkoutToggle, handleExerciseChange, handleSkipExercise, handleSkipRest, handleAddRestTime]);
+    }, [command, isListening, isWorkoutActive, isResting, handleWorkoutToggle, handleExerciseChange, handleSkipExercise, handleSkipRest, handleAddRestTime, clearCommand]);
 
     const handleLogout = () => {
         localStorage.removeItem('userName');
@@ -220,15 +303,14 @@ function Workout() {
             </header>
             <main className="workout-main">
                 <div className="video-and-controls">
-                    {/* --- THIS IS THE FIX --- */}
                     <VideoFeed
                         onPoseUpdate={handlePoseUpdate}
                         isWorkoutActive={isWorkoutActive}
                         currentExercise={currentExercise}
-                        repCount={repCount}
-                        stage={stage}
+                        feedbackColor={feedback.feedbackColor}
+                        currentStage={stage}
+                        currentRepCount={repCount}
                     />
-                    {/* ---------------------- */}
                     <Controls
                         exercises={allExercises}
                         onExerciseChange={handleExerciseChange}
@@ -239,7 +321,19 @@ function Workout() {
                         onSkipExercise={handleSkipExercise}
                         activeRoutine={activeRoutine}
                         isResting={isResting}
+                        onSkipRest={handleSkipRest}
+                        onAddRestTime={handleAddRestTime}
                     />
+                    {/* Debug button for testing */}
+                    <button 
+                        onClick={() => {
+                            console.log('Manual start workout test, current isWorkoutActive:', isWorkoutActive);
+                            handleWorkoutToggle();
+                        }}
+                        style={{margin: '10px', padding: '5px 10px', background: 'red', color: 'white', border: 'none', borderRadius: '4px'}}
+                    >
+                        DEBUG: Manual Start
+                    </button>
                 </div>
                 <StatusPanel
                     exercise={currentExercise}

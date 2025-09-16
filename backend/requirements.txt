@@ -1,7 +1,11 @@
 Flask==2.3.3
 Flask-Cors==4.0.0
 numpy==1.24.3
-vosk==0.3.45
 pydub==0.25.1
 transformers[torch]==4.33.1
-# Note: torch will be installed as part of transformers
+torch>=2.0.0
+soundfile==0.12.1
+librosa==0.10.1
+huggingface_hub>=0.16.0
+accelerate>=0.20.0
+sentencepiece>=0.1.99

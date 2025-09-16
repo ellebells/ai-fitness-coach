@@ -60,21 +60,51 @@ export function evaluateSquat(keypoints, stage, repCounter) {
   let feedbackColor = 'green';
   let newStage = stage;
   let newRepCounter = repCounter;
+  
+  console.log(`Squat evaluation - Current stage: ${stage}, Rep count: ${repCounter}`);
+  
   try {
     const leftHip = keypoints.find(kp => kp.name === 'left_hip');
     const leftKnee = keypoints.find(kp => kp.name === 'left_knee');
     const leftAnkle = keypoints.find(kp => kp.name === 'left_ankle');
     if (leftHip.score > 0.5 && leftKnee.score > 0.5 && leftAnkle.score > 0.5) {
       const kneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle);
-      if (kneeAngle > 160) newStage = 'up';
-      if (kneeAngle < 90 && newStage === 'up') {
-        if (leftHip.y > leftKnee.y) {
-          newStage = 'down';
+      
+      console.log(`Knee angle: ${kneeAngle.toFixed(1)}°, Hip Y: ${leftHip.y.toFixed(1)}, Knee Y: ${leftKnee.y.toFixed(1)}`);
+      
+      // Transition to 'up' stage when standing (knee angle > 150, reduced from 160 for better detection)
+      if (kneeAngle > 150) {
+        if (newStage === 'down') {
+          newStage = 'up';
           newRepCounter++;
-          feedback = 'Good Rep!';
+          feedback = 'Good Rep! 🎉';
+          feedbackColor = 'green';
+          console.log(`REP COMPLETED! New count: ${newRepCounter}`);
         } else {
-          feedback = 'Lower your hips!';
-          feedbackColor = 'red';
+          feedback = 'Good standing position. Now squat down!';
+          feedbackColor = 'green';
+        }
+      }
+      // Transition to 'down' stage when squatting (knee angle < 110, increased from 100 for better detection)
+      else if (kneeAngle < 110) {
+        newStage = 'down';
+        // Check if hips are low enough (hip should be at or below knee level)
+        if (leftHip.y >= leftKnee.y) {
+          feedback = 'Good depth! Now stand up.';
+          feedbackColor = 'green';
+        } else {
+          feedback = 'Go lower! Get your hips below knee level.';
+          feedbackColor = 'yellow';
+        }
+      }
+      // In between positions
+      else {
+        if (newStage === 'up') {
+          feedback = 'Keep going down...';
+          feedbackColor = 'blue';
+        } else {
+          feedback = 'Push up through your heels...';
+          feedbackColor = 'blue';
         }
       }
     } else {
@@ -85,6 +115,8 @@ export function evaluateSquat(keypoints, stage, repCounter) {
     feedback = 'Could not see key body points.';
     feedbackColor = 'orange';
   }
+  
+  console.log(`Squat result - Stage: ${newStage}, Rep count: ${newRepCounter}, Feedback: ${feedback}`);
   return { feedback, feedbackColor, stage: newStage, repCount: newRepCounter };
 }
 
@@ -282,7 +314,7 @@ export function evaluateBirdDog(keypoints) {
                 feedbackColor = 'red';
             } else {
                 feedback = 'Great stability! Hold it.';
-                feedbackColor = 'green';
+                feedbackColor = 'green';git 
                 isCorrectForm = true;
             }
         } else {

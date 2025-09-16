@@ -1,109 +1,102 @@
-AI Fitness Coach
-A real-time, browser-based personal trainer that uses the orchestration of three distinct AI models to provide live form correction, rep counting, and voice-activated control.
+Orchestrating AI models to achieve a goal.The AI Fitness Coach is a browser-based application that uses multiple pre-trained AI models to provide real-time feedback and guidance for a variety of physical exercises. It acts as a virtual personal trainer, helping users improve their form, count repetitions, and follow structured workout routines, all from the privacy of their own home.
 
+<<<<<<< HEAD
 This project was developed based on the "Orchestrating AI models to achieve a goal" template. It is a full-stack web application built with React, Flask, and TensorFlow.js.
+=======
+The core of the project is the successful orchestration of three distinct AI models operating on different data types, which are vision, audio, and language to create a seamless, interactive, and intelligent coaching experience.
+>>>>>>> c0fa5a8 (feat: Enhance workout functionality with new exercise images and speech recognition improvements)
 
-Live Demo Features
+# Core Features
+Real-Time Pose Estimation: Utilizes the MoveNet model to track 17 key body points, overlaying a live skeleton on the user's video feed for immediate visual feedback.
 
-Real-Time Pose Estimation: Uses the MoveNet model via TensorFlow.js to render a live skeleton over the user's video feed.
+AI-Powered Form Correction: A sophisticated rule-based engine, grounded in biomechanical principles, analyzes joint angles in real-time to provide immediate, actionable feedback (e.g., "Hips too low," "Great form!").
 
-AI-Powered Form Correction: Provides immediate, color-coded feedback on user form for 9 different exercises by analyzing joint angles.
+Smart Timers & Rep Counting: Automatically counts repetitions for dynamic exercises (e.g., Squats, Push-ups) and tracks hold times for isometric exercises (e.g., Planks).
 
-Automatic Rep & Duration Counting: Accurately counts repetitions for dynamic exercises (Squats, Push-ups) and tracks time for isometric holds (Plank, Wall Sit).
+Intelligent Timer Activation: A key feature where the timer for duration-based exercises will not start until the AI determines the user is holding the correct form.
 
-Three-Model AI Orchestration:
+Advanced Voice Control: A hands-free interface powered by a two-stage AI pipeline. OpenAI's Whisper model provides high-accuracy speech-to-text, and a BART language model interprets the user's intent to control the application.
 
-MoveNet (Vision): Analyzes video frames for pose keypoints.
+Structured Workout Routines: Users can select from pre-defined workout routines (e.g., "Core Strength") that guide them through a sequence of exercises with automated rest periods.
 
-Vosk (Speech): Transcribes user voice commands offline.
+Full User Control: Users can skip exercises, skip rest periods, or add more rest time using both UI buttons and natural language voice commands.
 
-BART (Language): A transformer model that performs zero-shot classification to understand the intent behind the user's speech.
+Persistent History & Progress Tracking: Workout sessions are saved to the browser's local storage. A dedicated history page displays past sessions and visualizes progress over time with dynamic line charts.
 
-Voice Control: Allows for hands-free operation, such as "start workout," "stop," or "switch to squats."
+Privacy-First Design: All video processing is done client-side in the browser. Only short, temporary audio clips for voice commands are sent to the backend for processing. No personal video data ever leaves the user's machine.
 
-Persistent User History: Supports user login and guest mode, saving workout history to localStorage.
+# Three-Model Orchestration PipelineThe project successfully orchestrates three pre-trained models in a seamless pipeline:
 
-Progress Visualization: Includes a history page with dynamic charts to track performance over time.
+Vision Model (MoveNet): The "Eyes" of the system. It processes video frames to determine the user's body position in real-time.
 
-Privacy-First Design: All video processing is done client-side in the browser. Only small audio clips are sent to the local backend for transcription.
+Speech-to-Text Model (Whisper): The "Ears" of the system. It processes audio waveforms to accurately transcribe the user's spoken words into text, even in noisy environments.
 
-Technical Stack
-Frontend: React, React Router, Chart.js, Axios
+Language Model (BART): The "Brain" of the system. It processes the transcribed text to understand the user's intent (e.g., "start a routine") and extracts key information or entities (e.g., the specific routine name).This pipeline allows a user to speak a natural command like "Start the core strength routine," which is transcribed by Whisper, understood by BART, and then executed by the application, which in turn uses MoveNet to provide coaching.
 
-Backend: Python, Flask, Flask-CORS
+# Technical StackFrontend: 
 
-AI / Machine Learning:
+React (with Hooks), JavaScript, HTML5, CSS
+AI/ML: TensorFlow.js (for MoveNet)
+Charting: Chart.js & react-chartjs-2
+Web APIs: WebRTC (getUserMedia for camera/mic)
 
-TensorFlow.js (MoveNet)
+Backend: Python with Flask
+AI/ML: Hugging Face Transformers (for Whisper and BART), PyTorch
+Audio Processing: PyDub, Librosa, SoundFile
+System Dependency: FFmpeg (for server-side audio conversion)
 
-Vosk (Speech-to-Text)
-
-Hugging Face Transformers (Zero-Shot Intent Classification)
-
-Project Structure
-/ai-fitness-coach
-├── /backend         # Python Flask Server
-│   ├── /models      # Pre-trained AI models (Vosk, Transformer)
-│   ├── app.py       # Main Flask application
-│   └── requirements.txt
-│
-├── /frontend        # React Client Application
-│   ├── /src
-│   │   ├── /components
-│   │   ├── /hooks   # Custom hooks for PoseNet, Speech Recognition, etc.
-│   │   ├── /pages
-│   │   └── /utils   # Core evaluation and drawing logic
-│   └── package.json
-│
-└── /scripts         # Helper scripts
-
-Setup and Installation
-Prerequisites
-Node.js (v16 or later)
-
-Python (v3.11 recommended)
-
+# Setup and Installation
+Prerequisites: 
+Python 3.11 (Python 3.12+ may cause issues with dependencies)
+Node.js (v16 or higher) & npm
 Git
+FFmpeg
 
-1. Clone the Repository
-git clone <your-repo-url>
+# Step 1: Clone the Repositorygit clone <your-repo-url>
 cd ai-fitness-coach
 
-2. Backend Setup
+# Step 2: Backend Setup
+Navigate to the backend directory:
 cd backend
 
-# Create a Python virtual environment
-python -m venv venv
+# Create and activate a Python 3.11 virtual environment:
+py -3.11 -m venv venv
 
-# Activate the environment
-# On Windows (Git Bash)
+## Activate the environment
+## On Windows (Git Bash)
 source venv/Scripts/activate
-# On macOS/Linux
-source venv/bin/activate
 
-# Install dependencies
+## On Windows (PowerShell)
+.\venv\Scripts\activate
+
+## Install Python dependencies:
 pip install -r requirements.txt
 
-# Download and place the Vosk model in /backend/models/
-# (See Vosk website for the small-en-us model)
-
-3. Frontend Setup
-# From the root directory
+# Step 3: Frontend SetupNavigate to the frontend directory:# From the root directory
 cd frontend
 
-# Install dependencies
+## Install Node.js dependencies:
 npm install
 
-4. Running the Application
-You can start both servers concurrently using the provided script. Use a Git Bash terminal on Windows.
+# Step 4: Running the Application
+You must have two terminals open to run both the backend and frontend servers simultaneously.
 
-# From the root directory
-./scripts/start.sh
+## Start the Backend Server:
+In your first terminal, navigate to /backend and activate the virtual environment.
+Run the Flask application:
+python app.py
 
-Alternatively, you can run them in two separate terminals:
+The server will start on http://localhost:5000. Wait for the AI models to load. The first time you run this, it will download the Whisper and BART models, which can take several minutes.
 
-Backend Terminal: cd backend, activate venv, then python app.py
+# Start the Frontend Server:
+In your second terminal, navigate to /frontend.
+Run the React application:npm start
+Your browser should automatically open to http://localhost:3000.
 
+<<<<<<< HEAD
 Frontend Terminal: cd frontend, then npm start
 
 The application will be available at http://localhost:3000.
+=======
+The application is now running and ready to use!
+>>>>>>> c0fa5a8 (feat: Enhance workout functionality with new exercise images and speech recognition improvements)

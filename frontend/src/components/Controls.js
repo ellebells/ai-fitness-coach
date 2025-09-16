@@ -1,7 +1,19 @@
 import React from 'react';
 
-// Add onSkipExercise and activeRoutine props
-function Controls({ exercises, onExerciseChange, onWorkoutToggle, isWorkoutActive, onVoiceCommand, onShowRoutines, onSkipExercise, activeRoutine }) {
+// Add rest-related props
+function Controls({ 
+  exercises, 
+  onExerciseChange, 
+  onWorkoutToggle, 
+  isWorkoutActive, 
+  onVoiceCommand, 
+  onShowRoutines, 
+  onSkipExercise, 
+  activeRoutine,
+  isResting,
+  onSkipRest,
+  onAddRestTime 
+}) {
   return (
     <div className="controls-container">
       <div className="control-group">
@@ -17,9 +29,24 @@ function Controls({ exercises, onExerciseChange, onWorkoutToggle, isWorkoutActiv
         Choose Routine
       </button>
 
-      {/* NEW: Conditionally render Skip button during a routine */}
+      {/* Workout Control Buttons */}
       {isWorkoutActive && activeRoutine && (
-          <button className="btn-warning" onClick={onSkipExercise}>Skip Exercise</button>
+        <div className="workout-controls">
+          {!isResting ? (
+            <button className="btn-warning" onClick={onSkipExercise}>
+              Skip Exercise
+            </button>
+          ) : (
+            <>
+              <button className="btn-warning" onClick={onSkipRest}>
+                Skip Rest
+              </button>
+              <button className="btn-secondary" onClick={onAddRestTime}>
+                +15s Rest
+              </button>
+            </>
+          )}
+        </div>
       )}
 
       <button 

@@ -13,10 +13,9 @@ const instructions = {
   'Wall-sit': 'Slide your back down a wall until your thighs are parallel to the ground.'
 };
 
-// This component now receives many props to display the full workout state
 function StatusPanel({ 
   exercise,
-  nextExercise, // NEW: Prop for the upcoming exercise
+  nextExercise,
   feedback, 
   feedbackColor, 
   repCount, 
@@ -26,7 +25,9 @@ function StatusPanel({
   isResting, 
   restTimeLeft, 
   onSkipRest,
-  onAddRestTime // NEW: Prop for adding rest
+  onAddRestTime,
+  isFormCorrect,
+  isWorkoutActive
 }) {
   const exerciseName = exercise?.name || 'No Exercise Selected';
   const exerciseType = exercise?.type;
@@ -38,19 +39,24 @@ function StatusPanel({
     return `${mins}:${secs}`;
   };
 
+  // Helper to generate a clean filename from the exercise name
+  const formatImageName = (name) => {
+    if (!name) return '';
+    return name.toLowerCase().replace(/[\s-]/g, '_');
+  };
+
   return (
     <div className="status-panel-container">
-      {/* Conditional Rendering: Show the rest screen OR the exercise screen */}
       {isResting ? (
         <div className="rest-display">
           <h2>REST</h2>
           <div className="rest-timer">{formatTime(restTimeLeft)}</div>
           
-          {/* NEW: Display the next exercise to prepare the user */}
           <div className="next-exercise-preview">
             <h4>Next Up: {nextExercise?.name}</h4>
             <img 
-              src={`/images/exercises/${nextExercise?.name.toLowerCase().replace(/[\s-]/g, '_')}.png`} 
+              className="exercise-image"
+              src={`/images/exercises/${formatImageName(nextExercise?.name)}.png`} 
               alt={`${nextExercise?.name} form`}
               onError={(e) => { e.target.style.display = 'none'; }}
             />
@@ -64,18 +70,30 @@ function StatusPanel({
       ) : (
         <>
           <h2>{exerciseName}</h2>
+          
+          {/* --- NEW: Prominent Exercise Image --- */}
+          <div className="exercise-image-container">
+            <img 
+              className="exercise-image"
+              src={`/images/exercises/${formatImageName(exerciseName)}.png`} 
+              alt={`${exerciseName} form`}
+              onError={(e) => { e.target.style.display = 'none'; }}
+            />
+          </div>
+          {/* ------------------------------------ */}
+
           <div className="counter-display">
             {exerciseType === 'reps' && <h3>Reps: {repCount}{target && ` / ${target}`}</h3>}
             {exerciseType === 'duration' && <h3>Time: {formatTime(timer)}{target && ` / ${formatTime(target)}`}</h3>}
           </div>
-          <img 
-            src={`/images/exercises/${exerciseName.toLowerCase().replace(/[\s-]/g, '_')}.png`} 
-            alt={`${exerciseName} form`}
-            onError={(e) => { e.target.style.display = 'none'; }}
-          />
+          
           <h4>Instructions:</h4>
           <p>{instructions[exerciseName] || 'Follow the on-screen guide.'}</p>
+          
           <h4>Feedback:</h4>
+           {isWorkoutActive && exercise.type === 'duration' && !isFormCorrect && (
+              <p className="form-prompt">Get into the correct position to start the timer.</p>
+           )}
           <p style={{ color: feedbackColor, fontWeight: 'bold', fontSize: '1.1rem' }}> 
             {feedback}
           </p>

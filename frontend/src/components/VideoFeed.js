@@ -2,98 +2,84 @@ import React, { useRef, useEffect, useCallback } from 'react';
 import Webcam from 'react-webcam';
 import { usePoseNet } from '../hooks/usePoseNet';
 import { drawCanvas } from '../utils/drawUtils';
-// --- CORRECTED IMPORTS ---
-// Import all evaluation functions in a single, clean block
 import { 
-  evaluatePlank, 
-  evaluatePushup, 
-  evaluateSquat,
-  evaluateBridge,
-  evaluateLunge,
-  evaluateHighKnees,
-  evaluateWallSit,
-  evaluateSuperman,
-  evaluateBirdDog
-} from '../utils/poseEvaluator'; 
+  evaluatePlank, evaluatePushup, evaluateSquat,
+  evaluateBridge, evaluateLunge, evaluateHighKnees,
+  evaluateWallSit, evaluateSuperman, evaluateBirdDog
+} from '../utils/poseEvaluator';
 
-function VideoFeed({ onPoseUpdate, isWorkoutActive, currentExercise, repCount, stage }) { 
+// This component now accepts the feedbackColor prop to dynamically change the skeleton color
+function VideoFeed({ onPoseUpdate, isWorkoutActive, currentExercise, feedbackColor, currentStage, currentRepCount }) { 
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
   const { detector, loading } = usePoseNet();
 
   const runPoseDetection = useCallback(async () => {
+    // Ensure the model is loaded and the webcam is ready
     if (detector && webcamRef.current && webcamRef.current.video.readyState === 4) {
       const video = webcamRef.current.video;
       const { videoWidth, videoHeight } = video;
 
+      // Set the video and canvas dimensions
       webcamRef.current.video.width = videoWidth;
       webcamRef.current.video.height = videoHeight;
-
+      
+      // Estimate poses in the current video frame
       const poses = await detector.estimatePoses(video);
       
       const ctx = canvasRef.current.getContext('2d');
-      drawCanvas(poses, videoWidth, videoHeight, ctx, canvasRef);
+      // Draw the skeleton, passing the dynamic color based on form correctness
+      drawCanvas(poses, videoWidth, videoHeight, ctx, canvasRef, feedbackColor);
 
+      // Only evaluate the pose if the workout is active and a pose is detected
       if (isWorkoutActive && poses && poses.length > 0) {
-        let feedback;
+        let feedbackResult;
+        const keypoints = poses[0].keypoints;
+        
+        // Use a switch statement to call the correct evaluation function for the current exercise
         switch(currentExercise.name) {
-          case 'Plank':
-            feedback = evaluatePlank(poses[0].keypoints);
-            break;
-          case 'Superman':
-            feedback = evaluateSuperman(poses[0].keypoints);
-            break;
-          case 'Wall-sit':
-            feedback = evaluateWallSit(poses[0].keypoints);
-            break;
-          case 'Bird-dog':
-            feedback = evaluateBirdDog(poses[0].keypoints);
-            break;
-          case 'Push-up':
-            feedback = evaluatePushup(poses[0].keypoints, stage, repCount);
-            break;
-          case 'Squat':
-            feedback = evaluateSquat(poses[0].keypoints, stage, repCount);
-            break;
-          case 'Bridge':
-            feedback = evaluateBridge(poses[0].keypoints, stage, repCount);
-            break;
-          case 'Lunges':
-            feedback = evaluateLunge(poses[0].keypoints, stage, repCount);
-            break;
-          case 'High Knees':
-            feedback = evaluateHighKnees(poses[0].keypoints, stage, repCount);
-            break;
+          case 'Plank': feedbackResult = evaluatePlank(keypoints); break;
+          case 'Superman': feedbackResult = evaluateSuperman(keypoints); break;
+          case 'Wall-sit': feedbackResult = evaluateWallSit(keypoints); break;
+          case 'Bird-dog': feedbackResult = evaluateBirdDog(keypoints); break;
+          case 'Push-up': feedbackResult = evaluatePushup(keypoints, currentStage, currentRepCount); break;
+          case 'Squat': feedbackResult = evaluateSquat(keypoints, currentStage, currentRepCount); break;
+          case 'Bridge': feedbackResult = evaluateBridge(keypoints, currentStage, currentRepCount); break;
+          case 'Lunges': feedbackResult = evaluateLunge(keypoints, currentStage, currentRepCount); break;
+          case 'High Knees': feedbackResult = evaluateHighKnees(keypoints, currentStage, currentRepCount); break;
           default:
-            // --- CORRECTED TYPO ---
-            feedback = { feedback: 'Evaluation for this exercise is not yet implemented.', feedbackColor: 'orange' };
+            feedbackResult = { feedback: 'Evaluation for this exercise is not yet implemented.', feedbackColor: 'orange', isCorrectForm: false };
         }
-        onPoseUpdate(feedback);
+        // Send the complete feedback object up to the parent Workout component
+        onPoseUpdate(feedbackResult);
       }
     }
-  }, [detector, onPoseUpdate, isWorkoutActive, currentExercise, repCount, stage]);
+  }, [detector, isWorkoutActive, currentExercise, onPoseUpdate, feedbackColor, currentStage, currentRepCount]);
 
-  // --- HOOK MOVED TO CORRECT POSITION ---
-  // This useEffect runs the detection loop
+  // Set up an interval to run the pose detection loop continuously
   useEffect(() => {
     const interval = setInterval(() => {
       runPoseDetection();
-    }, 100);
+    }, 100); // Run roughly 10 times per second for a balance of responsiveness and performance
     return () => clearInterval(interval);
   }, [runPoseDetection]);
 
   return (
     <div className="video-feed-container">
-      {loading && <p>Loading model, please wait...</p>}
+      {/* Polished loading indicator */}
+      {loading && <div className="loading-overlay"><h2>Loading AI Model...</h2></div>}
       <Webcam
         ref={webcamRef}
         mirrored={true}
+        // Styles are now handled by Workout.css for better alignment and consistency
       />
       <canvas
         ref={canvasRef}
+        // Styles are now handled by Workout.css
       />
     </div>
   );
 }
 
 export default VideoFeed;
+

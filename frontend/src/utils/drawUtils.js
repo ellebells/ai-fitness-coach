@@ -7,45 +7,41 @@ const connections = [
   [11, 13], [13, 15], [12, 14], [14, 16]
 ];
 
-// Draws the skeleton and keypoints on the canvas
-export const drawCanvas = (poses, videoWidth, videoHeight, ctx, canvasRef) => {
+// This function now accepts a 'color' parameter
+export const drawCanvas = (poses, videoWidth, videoHeight, ctx, canvasRef, color = '#00FF00') => {
   const canvas = canvasRef.current;
   canvas.width = videoWidth;
   canvas.height = videoHeight;
 
-  // --- NEW: Flip the canvas context horizontally ---
   ctx.save();
   ctx.scale(-1, 1);
   ctx.translate(-videoWidth, 0);
-  // -----------------------------------------------
 
   if (poses && poses.length > 0) {
-    // We must also pass the video dimensions to the drawing functions now
     poses.forEach(pose => {
-      drawKeypoints(pose.keypoints, 0.6, ctx);
-      drawSkeleton(pose.keypoints, 0.7, ctx);
+      // Pass the color to the drawing functions
+      drawKeypoints(pose.keypoints, 0.6, ctx, color);
+      drawSkeleton(pose.keypoints, 0.7, ctx, color);
     });
   }
   
-  // --- NEW: Restore the canvas context ---
   ctx.restore();
-  // ---------------------------------------
 };
 
-function drawKeypoints(keypoints, minConfidence, ctx) {
+function drawKeypoints(keypoints, minConfidence, ctx, color) {
   for (let i = 0; i < keypoints.length; i++) {
     const keypoint = keypoints[i];
     if (keypoint.score > minConfidence) {
       const { x, y } = keypoint;
       ctx.beginPath();
       ctx.arc(x, y, 5, 0, 2 * Math.PI);
-      ctx.fillStyle = '#00FF00';
+      ctx.fillStyle = color; // Use the dynamic color
       ctx.fill();
     }
   }
 }
 
-function drawSkeleton(keypoints, minConfidence, ctx) {
+function drawSkeleton(keypoints, minConfidence, ctx, color) {
   connections.forEach(connection => {
     const [startPoint, endPoint] = connection;
     const startKeypoint = keypoints[startPoint];
@@ -58,7 +54,7 @@ function drawSkeleton(keypoints, minConfidence, ctx) {
       ctx.beginPath();
       ctx.moveTo(startX, startY);
       ctx.lineTo(endX, endY);
-      ctx.strokeStyle = '#00FF00';
+      ctx.strokeStyle = color; // Use the dynamic color
       ctx.lineWidth = 2;
       ctx.stroke();
     }

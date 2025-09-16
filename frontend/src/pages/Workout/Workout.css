@@ -21,6 +21,11 @@
   margin: 0;
 }
 
+.header-buttons {
+    display: flex;
+    gap: 10px;
+}
+
 .user-info {
   font-size: 1.1rem;
   font-weight: bold;
@@ -30,6 +35,7 @@
   display: flex;
   flex-grow: 1;
   gap: 20px;
+  min-height: 0; /* Important for flexbox children with overflow */
 }
 
 .video-and-controls {
@@ -44,17 +50,40 @@
   background-color: #000;
   border-radius: 10px;
   overflow: hidden;
-  position: relative; /* crucial for alignment */
+  position: relative; /* Crucial for aligning canvas and video */
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-/* Make both the canvas and webcam fill the container */
-.video-feed-container > canvas, .video-feed-container > video {
+
+/* Make both the canvas and webcam fill the container perfectly */
+.video-feed-container > canvas, 
+.video-feed-container > video {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  border-radius: 10px; /* Ensure canvas has rounded corners too */
+  border-radius: 10px;
+  object-fit: cover; /* Ensures video fills the container */
 }
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 20;
+    color: white;
+    font-size: 1.5rem;
+    border-radius: 10px;
+}
+
 .controls-container {
   padding: 15px;
   background-color: #1e1e1e;
@@ -62,16 +91,18 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
   gap: 15px;
 }
 
 .status-panel-container {
-  flex: 1; /* Takes up 1/4 of the space */
+  flex: 1;
   padding: 20px;
   background-color: #1e1e1e;
   border-radius: 10px;
   display: flex;
   flex-direction: column;
+  overflow-y: auto; /* Add scroll if content overflows */
 }
 
 select {
@@ -81,6 +112,15 @@ select {
   color: #e0e0e0;
   border: 1px solid #444;
   font-size: 1rem;
+}
+
+.btn-voice {
+  background-color: #9c27b0; /* Purple color */
+  color: white;
+}
+
+.btn-voice:hover {
+  background-color: #7b1fa2;
 }
 
 .counter-display {
@@ -94,29 +134,83 @@ select {
 .counter-display h3 {
   margin: 0;
   font-size: 2rem;
-  color: #00FF00; /* Green color for the counter */
-}
-.btn-voice {
-  background-color: #9c27b0; /* Purple color */
-  color: white;
+  color: #00FF00;
 }
 
-.btn-voice:hover {
-  background-color: #7b1fa2;
-}
-.rest-display {
-    text-align: center;
-    padding: 40px 20px;
-    background-color: #007bff;
+.exercise-image-container {
+    width: 100%;
+    max-width: 250px;
+    margin: 15px auto;
+    padding: 5px;
+    background-color: #333;
     border-radius: 8px;
-    color: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
 }
 
-.rest-display h2 {
-    margin: 0 0 10px 0;
+.exercise-image {
+    width: 100%;
+    border-radius: 5px;
+    display: block;
 }
 
-.rest-display h3 {
-    margin: 0;
-    font-size: 2.5rem;
+.form-prompt {
+    color: #ffeb3b; /* Bright yellow */
+    font-weight: bold;
+    font-size: 1.1rem;
+    text-align: center;
+    padding: 10px;
+    background-color: rgba(255, 235, 59, 0.1);
+    border-radius: 5px;
+    margin-bottom: 10px;
 }
+
+/* Styles for the Rest Screen */
+.rest-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.rest-timer {
+    font-size: 4rem;
+    font-weight: bold;
+    color: cyan;
+    margin: 10px 0;
+}
+
+.next-exercise-preview {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.next-exercise-preview h4 {
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+}
+
+.rest-controls {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+/* Styles for the voice command display */
+.voice-command-display {
+    margin-top: auto; /* Pushes to the bottom */
+    padding-top: 15px;
+    border-top: 1px solid #444;
+}
+
+/* Workout controls in the Controls component */
+.workout-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.workout-controls button {
+    white-space: nowrap;
+}
+
