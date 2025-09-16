@@ -77,6 +77,7 @@ function Workout() {
         setCurrentExercise(routine.exercises[0]);
         setShowRoutineModal(false);
         setFeedback({ feedback: `Starting routine: ${routine.name}`, feedbackColor: 'white' });
+        speak(`${routine.name} routine selected. Get ready!`);
     };
 
     const handlePoseUpdate = (poseFeedback) => {
@@ -108,6 +109,7 @@ function Workout() {
         if (selected) {
             setCurrentExercise(selected);
             setActiveRoutine(null);
+            speak(`${exerciseName} selected.`);
         }
         setIsFormCorrect(false);
         setFeedback({ feedback: 'Ready to start.', feedbackColor: 'white' });
@@ -133,8 +135,14 @@ function Workout() {
     }, [activeRoutine, exerciseIndex]);
 
     const handleWorkoutToggle = useCallback(() => {
-        setIsWorkoutActive(prev => !prev);
-    }, []);
+        const newState = !isWorkoutActive;
+        setIsWorkoutActive(newState);
+        if (newState) {
+            speak("Workout started! Let's go!");
+        } else {
+            speak("Workout stopped. Great effort!");
+        }
+    }, [isWorkoutActive]);
     
     // Effect to handle workout session logging and state reset
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -188,12 +196,14 @@ function Workout() {
 
     const handleSkipExercise = useCallback(() => {
         if (!isWorkoutActive || !activeRoutine) return;
+        speak("Exercise skipped.");
         logExercise();
         advanceToNextExercise();
     }, [isWorkoutActive, activeRoutine, logExercise, advanceToNextExercise]);
 
     const handleSkipRest = useCallback(() => {
         if (!isResting) return;
+        speak("Rest skipped. Let's continue!");
         setRestTimeLeft(0);
     }, [isResting]);
 
@@ -201,11 +211,13 @@ function Workout() {
         if(isResting) {
             // If already resting, add 15 seconds to current rest
             setRestTimeLeft(prev => prev + 15);
+            speak("15 seconds added to rest time.");
         } else {
             // If not resting, start a rest period of 15 seconds
             setIsResting(true);
             setRestTimeLeft(15);
             setFeedback({ feedback: 'Rest time added!', feedbackColor: 'cyan' });
+            speak("Rest break started. Take 15 seconds.");
         }
     }, [isResting]);
 
@@ -224,6 +236,7 @@ function Workout() {
                         console.log('START_WORKOUT command detected, isWorkoutActive:', isWorkoutActive);
                         if (!isWorkoutActive) {
                             console.log('Starting workout...');
+                            speak("Voice command confirmed. Starting workout!");
                             handleWorkoutToggle();
                         } else {
                             console.log('Workout already active, ignoring start command');
@@ -233,6 +246,7 @@ function Workout() {
                         console.log('STOP_WORKOUT command detected, isWorkoutActive:', isWorkoutActive);
                         if (isWorkoutActive) {
                             console.log('Stopping workout...');
+                            speak("Voice command confirmed. Stopping workout.");
                             handleWorkoutToggle();
                         } else {
                             console.log('Workout not active, ignoring stop command');
@@ -240,16 +254,21 @@ function Workout() {
                         break;
                     case 'SKIP_EXERCISE':
                         console.log('SKIP_EXERCISE command detected');
+                        speak("Voice command confirmed.");
                         if (isResting) handleSkipRest();
                         else handleSkipExercise();
                         break;
                     case 'ADD_REST': 
                         console.log('ADD_REST command detected');
+                        speak("Voice command confirmed.");
                         handleAddRestTime(); // Remove the isResting check since handleAddRestTime now handles both cases
                         break;
                     case 'START_ROUTINE':
                         console.log('START_ROUTINE command detected, entity:', command.entity);
-                        if(command.entity && !isWorkoutActive) startRoutine(command.entity);
+                        if(command.entity && !isWorkoutActive) {
+                            speak(`Voice command confirmed. Starting ${command.entity} routine.`);
+                            startRoutine(command.entity);
+                        }
                         break;
                     case 'SWITCH_EXERCISE':
                         console.log('SWITCH_EXERCISE command detected, entity:', command.entity);
@@ -277,9 +296,11 @@ function Workout() {
                             console.log('Found exercise:', foundExercise);
                             if (foundExercise) {
                                 console.log('Switching to exercise:', foundExercise.name);
+                                speak(`Voice command confirmed. Switching to ${foundExercise.name}.`);
                                 handleExerciseChange(foundExercise.name);
                             } else {
                                 console.log('Exercise not found!');
+                                speak("Sorry, I didn't recognize that exercise.");
                             }
                         } else {
                             console.log('Cannot switch exercise - missing entity or workout active');
@@ -287,6 +308,7 @@ function Workout() {
                         break;
                     default: 
                         console.log('Unknown command intent:', command.intent);
+                        speak("Sorry, I didn't understand that command.");
                         break;
                 }
                 
@@ -342,16 +364,6 @@ function Workout() {
                         onSkipRest={handleSkipRest}
                         onAddRestTime={handleAddRestTime}
                     />
-                    {/* Debug button for testing */}
-                    <button 
-                        onClick={() => {
-                            console.log('Manual start workout test, current isWorkoutActive:', isWorkoutActive);
-                            handleWorkoutToggle();
-                        }}
-                        style={{margin: '10px', padding: '5px 10px', background: 'red', color: 'white', border: 'none', borderRadius: '4px'}}
-                    >
-                        DEBUG: Manual Start
-                    </button>
                 </div>
                 <StatusPanel
                     exercise={currentExercise}
