@@ -70,7 +70,11 @@ function Workout() {
     
     useEffect(() => {
         const storedName = localStorage.getItem('userName');
-        if (storedName) setUserName(storedName);
+        const isGuest = localStorage.getItem('isGuestSession') === 'true';
+        if (storedName) {
+            // Display "Guest" for guest sessions instead of the long session ID
+            setUserName(isGuest ? 'Guest' : storedName);
+        }
     }, []);
 
     const startRoutine = (routineKey) => {
@@ -335,7 +339,16 @@ function Workout() {
     }, [command, isListening, isWorkoutActive, isResting, handleWorkoutToggle, handleExerciseChange, handleSkipExercise, handleSkipRest, handleAddRestTime, clearCommand]);
 
     const handleLogout = () => {
+        const isGuest = localStorage.getItem('isGuestSession') === 'true';
+        const userName = localStorage.getItem('userName');
+        
+        // Clear guest session data completely
+        if (isGuest && userName) {
+            localStorage.removeItem(`${userName}_history`);
+        }
+        
         localStorage.removeItem('userName');
+        localStorage.removeItem('isGuestSession');
         navigate('/');
     };
 

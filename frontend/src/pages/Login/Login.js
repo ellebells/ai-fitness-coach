@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { exportProfile, importProfile, getAllProfiles } from '../../utils/profileManager';
 import './Login.css';
 
 function Login() {
   const [name, setName] = useState('');
+  const [showProfileManager, setShowProfileManager] = useState(false);
   const navigate = useNavigate();
 
   const handleStart = () => {
@@ -16,17 +18,55 @@ function Login() {
   };
 
   const handleGuest = () => {
-    // --- THIS IS THE FIX ---
-    // Set 'Guest' as the user so the protected route allows access
-    localStorage.setItem('userName', 'Guest');
-    // ----------------------
+    // Create a unique guest session ID for each guest session
+    const guestSessionId = `Guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    localStorage.setItem('userName', guestSessionId);
+    localStorage.setItem('isGuestSession', 'true');
     navigate('/workout');
   };
+
+  const handleExport = async (profileName = null) => {
+    // If no profile name provided, try to get current user or show error
+    const targetProfile = profileName || localStorage.getItem('userName');
+    
+    if (!targetProfile) {
+      alert('No profile selected to export. Please specify a profile or log in first.');
+      return;
+    }
+    
+    const result = exportProfile(targetProfile);
+    alert(result.message);
+  };
+
+  const handleImport = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    try {
+      const result = await importProfile(file);
+      if (result.success) {
+        alert(result.message);
+        navigate('/workout');
+      } else {
+        alert(result.message);
+      }
+    } catch (error) {
+      alert(error.message);
+    }
+    
+    // Reset file input
+    event.target.value = '';
+  };
+
+  const profiles = getAllProfiles();
 
   return (
     <div className="login-container">
       <h1>AI Fitness Coach</h1>
       <p>Real-time pose analysis and voice commands</p>
+      <p className="device-notice">
+        <em>Profiles are stored on this device only. Using another device starts fresh.</em>
+      </p>
       
       <input 
         type="text" 
@@ -42,6 +82,64 @@ function Login() {
       <button className="btn-secondary" onClick={handleGuest}>
         Continue as Guest
       </button>
+
+      {/* Profile Management Section */}
+      <div className="profile-management">
+        <button 
+          className="btn-tertiary" 
+          onClick={() => setShowProfileManager(!showProfileManager)}
+        >
+          {showProfileManager ? 'Hide' : 'Manage'} Profiles
+        </button>
+        
+        {showProfileManager && (
+          <div className="profile-manager">
+            <div className="profile-actions">
+              <label className="btn-import">
+                Import Profile
+                <input 
+                  type="file" 
+                  accept=".json" 
+                  onChange={handleImport}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            </div>
+            
+            {profiles.length > 0 && (
+              <div className="existing-profiles">
+                <h3>Existing Profiles</h3>
+                {profiles.map((profile) => (
+                  <div key={profile.name} className="profile-item">
+                    <div className="profile-info">
+                      <span className="profile-name">{profile.name}</span>
+                      <span className="profile-stats">
+                        {profile.sessionCount} sessions
+                        {profile.lastSession && (
+                          <span className="last-session">
+                            • Last: {new Date(profile.lastSession).toLocaleDateString()}
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <button 
+                      className="btn-export-small"
+                      onClick={() => handleExport(profile.name)}
+                      title={`Export ${profile.name}'s profile`}
+                    >
+                      Export
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {profiles.length === 0 && (
+              <p className="no-profiles">No profiles found. Create a profile by entering your name and starting training.</p>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

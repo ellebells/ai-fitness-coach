@@ -33,7 +33,9 @@ function History() {
 
     useEffect(() => {
         const user = localStorage.getItem('userName') || 'guest';
-        setUserName(user);
+        const isGuest = localStorage.getItem('isGuestSession') === 'true';
+        // Display "Guest" for guest sessions instead of the long session ID
+        setUserName(isGuest ? 'Guest' : user);
         const storedHistory = JSON.parse(localStorage.getItem(`${user}_history`)) || [];
         setHistory(storedHistory.reverse()); // Show most recent first
     }, []);
