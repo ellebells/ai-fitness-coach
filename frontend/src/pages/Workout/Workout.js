@@ -82,13 +82,21 @@ function Workout() {
     const handlePoseUpdate = (poseFeedback) => {
         if (isWorkoutActive && !isResting) {
             console.log('Pose feedback received:', poseFeedback);
+            console.log('Current repCount state:', repCount);
+            console.log('Pose feedback repCount:', poseFeedback.repCount);
+            console.log('repCount comparison:', poseFeedback.repCount !== repCount);
+            
             setFeedback(poseFeedback);
-            if (poseFeedback.repCount !== undefined) {
-                console.log(`Setting rep count to: ${poseFeedback.repCount}`);
+            if (poseFeedback.repCount !== undefined && poseFeedback.repCount !== repCount) {
+                console.log(`Rep count changed from ${repCount} to ${poseFeedback.repCount}`);
                 setRepCount(poseFeedback.repCount);
+                // Force a log to verify the state actually changed
+                setTimeout(() => {
+                    console.log('RepCount after setState:', repCount);
+                }, 100);
             }
-            if (poseFeedback.stage) {
-                console.log(`Setting stage to: ${poseFeedback.stage}`);
+            if (poseFeedback.stage && poseFeedback.stage !== stage) {
+                console.log(`Stage changed from ${stage} to ${poseFeedback.stage}`);
                 setStage(poseFeedback.stage);
             }
             if (poseFeedback.isCorrectForm !== undefined) setIsFormCorrect(poseFeedback.isCorrectForm);
@@ -103,6 +111,10 @@ function Workout() {
         }
         setIsFormCorrect(false);
         setFeedback({ feedback: 'Ready to start.', feedbackColor: 'white' });
+        // Reset stage and rep counter when changing exercise
+        setStage(null);
+        setRepCount(0);
+        console.log(`Exercise changed to ${exerciseName}. Stage and rep count reset.`);
     }, []);
     
     const advanceToNextExercise = useCallback(() => {

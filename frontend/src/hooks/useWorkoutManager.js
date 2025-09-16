@@ -66,7 +66,7 @@ export const useWorkoutManager = (isWorkoutActive, currentExercise, isFormCorrec
     setRepCount(0);
     setStage('up');
     setTimer(0);
-  }, [currentExercise, isWorkoutActive, logExercise]);
+  }, [currentExercise, isWorkoutActive]); // Removed logExercise from dependencies to prevent reset loop
 
   // Return all the state and functions needed by the main Workout component
   return { repCount, setRepCount, timer, stage, setStage, sessionLog, setSessionLog, logExercise };

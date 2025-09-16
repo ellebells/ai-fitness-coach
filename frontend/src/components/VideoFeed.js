@@ -13,6 +13,16 @@ function VideoFeed({ onPoseUpdate, isWorkoutActive, currentExercise, feedbackCol
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
   const { detector, loading } = usePoseNet();
+  
+  // Use refs to store the most recent stage and rep count values
+  const latestStageRef = useRef(currentStage);
+  const latestRepCountRef = useRef(currentRepCount);
+  
+  // Update refs when props change
+  useEffect(() => {
+    latestStageRef.current = currentStage;
+    latestRepCountRef.current = currentRepCount;
+  }, [currentStage, currentRepCount]);
 
   const runPoseDetection = useCallback(async () => {
     // Ensure the model is loaded and the webcam is ready
@@ -42,14 +52,23 @@ function VideoFeed({ onPoseUpdate, isWorkoutActive, currentExercise, feedbackCol
           case 'Superman': feedbackResult = evaluateSuperman(keypoints); break;
           case 'Wall-sit': feedbackResult = evaluateWallSit(keypoints); break;
           case 'Bird-dog': feedbackResult = evaluateBirdDog(keypoints); break;
-          case 'Push-up': feedbackResult = evaluatePushup(keypoints, currentStage, currentRepCount); break;
-          case 'Squat': feedbackResult = evaluateSquat(keypoints, currentStage, currentRepCount); break;
-          case 'Bridge': feedbackResult = evaluateBridge(keypoints, currentStage, currentRepCount); break;
-          case 'Lunges': feedbackResult = evaluateLunge(keypoints, currentStage, currentRepCount); break;
-          case 'High Knees': feedbackResult = evaluateHighKnees(keypoints, currentStage, currentRepCount); break;
+          case 'Push-up': feedbackResult = evaluatePushup(keypoints, latestStageRef.current, latestRepCountRef.current); break;
+          case 'Squat': feedbackResult = evaluateSquat(keypoints, latestStageRef.current, latestRepCountRef.current); break;
+          case 'Bridge': feedbackResult = evaluateBridge(keypoints, latestStageRef.current, latestRepCountRef.current); break;
+          case 'Lunges': feedbackResult = evaluateLunge(keypoints, latestStageRef.current, latestRepCountRef.current); break;
+          case 'High Knees': feedbackResult = evaluateHighKnees(keypoints, latestStageRef.current, latestRepCountRef.current); break;
           default:
             feedbackResult = { feedback: 'Evaluation for this exercise is not yet implemented.', feedbackColor: 'orange', isCorrectForm: false };
         }
+        
+        // Update the refs with the new values from the evaluation
+        if (feedbackResult.stage !== undefined) {
+          latestStageRef.current = feedbackResult.stage;
+        }
+        if (feedbackResult.repCount !== undefined) {
+          latestRepCountRef.current = feedbackResult.repCount;
+        }
+        
         // Send the complete feedback object up to the parent Workout component
         onPoseUpdate(feedbackResult);
       }

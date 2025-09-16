@@ -72,39 +72,66 @@ export function evaluateSquat(keypoints, stage, repCounter) {
       
       console.log(`Knee angle: ${kneeAngle.toFixed(1)}°, Hip Y: ${leftHip.y.toFixed(1)}, Knee Y: ${leftKnee.y.toFixed(1)}`);
       
-      // Transition to 'up' stage when standing (knee angle > 150, reduced from 160 for better detection)
-      if (kneeAngle > 150) {
+      // Initialize stage based on current position if not set
+      if (!newStage || (newStage !== 'up' && newStage !== 'down')) {
+        if (kneeAngle > 140) {  // More lenient threshold for initialization
+          newStage = 'up';
+          console.log('Initializing stage to "up" (standing position)');
+        } else if (kneeAngle < 120) {  // More lenient threshold for initialization
+          newStage = 'down';
+          console.log('Initializing stage to "down" (squatting position)');
+        }
+      }
+      
+      // More flexible stage transitions with hysteresis to prevent bouncing
+      if (kneeAngle > 140) {  // Easier to reach standing position
         if (newStage === 'down') {
+          // Only count rep if we were clearly in down position
           newStage = 'up';
           newRepCounter++;
           feedback = 'Good Rep! 🎉';
           feedbackColor = 'green';
           console.log(`REP COMPLETED! New count: ${newRepCounter}`);
         } else {
-          feedback = 'Good standing position. Now squat down!';
-          feedbackColor = 'green';
+          newStage = 'up'; // Maintain up state
+          if (kneeAngle > 150) {
+            feedback = 'Perfect standing position. Now squat down!';
+            feedbackColor = 'green';
+          } else {
+            feedback = 'Good! Keep standing tall.';
+            feedbackColor = 'green';
+          }
         }
       }
-      // Transition to 'down' stage when squatting (knee angle < 110, increased from 100 for better detection)
-      else if (kneeAngle < 110) {
-        newStage = 'down';
-        // Check if hips are low enough (hip should be at or below knee level)
+      // Transition to down when clearly squatting
+      else if (kneeAngle < 120) {  // Easier to reach squatting position
+        // Only transition to down if we're coming from up or if clearly squatting
+        if (newStage === 'up' || kneeAngle < 110) {
+          newStage = 'down';
+        }
+        
+        // Provide feedback based on depth
         if (leftHip.y >= leftKnee.y) {
-          feedback = 'Good depth! Now stand up.';
+          feedback = 'Great depth! Now stand up.';
           feedbackColor = 'green';
         } else {
           feedback = 'Go lower! Get your hips below knee level.';
           feedbackColor = 'yellow';
         }
       }
-      // In between positions
+      // In between positions - maintain current stage but provide guidance
       else {
+        // Don't change stage during transitions, just give feedback
         if (newStage === 'up') {
           feedback = 'Keep going down...';
           feedbackColor = 'blue';
-        } else {
+        } else if (newStage === 'down') {
           feedback = 'Push up through your heels...';
           feedbackColor = 'blue';
+        } else {
+          // Still in undefined state, provide guidance
+          feedback = 'Stand up straight to begin, then squat down.';
+          feedbackColor = 'cyan';
         }
       }
     } else {
@@ -314,7 +341,7 @@ export function evaluateBirdDog(keypoints) {
                 feedbackColor = 'red';
             } else {
                 feedback = 'Great stability! Hold it.';
-                feedbackColor = 'green';git 
+                feedbackColor = 'green';
                 isCorrectForm = true;
             }
         } else {

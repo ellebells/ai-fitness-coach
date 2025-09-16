@@ -23,10 +23,12 @@ function StatusPanel({
   transcription, 
   target, 
   isResting, 
-  restTimeLeft, 
+  restTimeLeft,
   isFormCorrect,
   isWorkoutActive
 }) {
+  // Debug log to see if StatusPanel receives updated repCount
+  console.log('StatusPanel render - repCount:', repCount);
   const exerciseName = exercise?.name || 'No Exercise Selected';
   const exerciseType = exercise?.type;
 
