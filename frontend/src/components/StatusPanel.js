@@ -42,7 +42,9 @@ function StatusPanel({
   // Helper to generate a clean filename from the exercise name
   const formatImageName = (name) => {
     if (!name) return '';
-    return name.toLowerCase().replace(/[\s-]/g, '_');
+    
+    // Convert to lowercase and replace spaces with hyphens to match actual filenames
+    return name.toLowerCase().replace(/\s+/g, '-');
   };
 
   return (
@@ -58,7 +60,13 @@ function StatusPanel({
               className="exercise-image"
               src={`/images/exercises/${formatImageName(nextExercise?.name)}.png`} 
               alt={`${nextExercise?.name} form`}
-              onError={(e) => { e.target.style.display = 'none'; }}
+              onError={(e) => { 
+                console.log(`Failed to load rest image: /images/exercises/${formatImageName(nextExercise?.name)}.png`);
+                e.target.style.display = 'none'; 
+              }}
+              onLoad={() => {
+                console.log(`Successfully loaded rest image: /images/exercises/${formatImageName(nextExercise?.name)}.png`);
+              }}
             />
           </div>
         </div>
@@ -66,32 +74,40 @@ function StatusPanel({
         <>
           <h2>{exerciseName}</h2>
           
-          {/* --- NEW: Prominent Exercise Image --- */}
-          <div className="exercise-image-container">
-            <img 
-              className="exercise-image"
-              src={`/images/exercises/${formatImageName(exerciseName)}.png`} 
-              alt={`${exerciseName} form`}
-              onError={(e) => { e.target.style.display = 'none'; }}
-            />
-          </div>
-          {/* ------------------------------------ */}
-
+          {/* --- Counter Display --- */}
           <div className="counter-display">
             {exerciseType === 'reps' && <h3>Reps: {repCount}{target && ` / ${target}`}</h3>}
             {exerciseType === 'duration' && <h3>Time: {formatTime(timer)}{target && ` / ${formatTime(target)}`}</h3>}
           </div>
           
-          <h4>Instructions:</h4>
-          <p>{instructions[exerciseName] || 'Follow the on-screen guide.'}</p>
+          {/* --- Exercise Image --- */}
+          <div className="exercise-image-container">
+            <img 
+              className="exercise-image"
+              src={`/images/exercises/${formatImageName(exerciseName)}.png`} 
+              alt={`${exerciseName} form`}
+              onError={(e) => { 
+                console.log(`Failed to load image: /images/exercises/${formatImageName(exerciseName)}.png`);
+                e.target.style.display = 'none'; 
+              }}
+              onLoad={() => {
+                console.log(`Successfully loaded image: /images/exercises/${formatImageName(exerciseName)}.png`);
+              }}
+            />
+          </div>
           
-          <h4>Feedback:</h4>
-           {isWorkoutActive && exercise.type === 'duration' && !isFormCorrect && (
-              <p className="form-prompt">Get into the correct position to start the timer.</p>
-           )}
-          <p style={{ color: feedbackColor, fontWeight: 'bold', fontSize: '1.1rem' }}> 
-            {feedback}
-          </p>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <h4>Instructions:</h4>
+            <p style={{ marginBottom: '10px' }}>{instructions[exerciseName] || 'Follow the on-screen guide.'}</p>
+            
+            <h4>Feedback:</h4>
+            {isWorkoutActive && exercise.type === 'duration' && !isFormCorrect && (
+                <p className="form-prompt">Get into the correct position to start the timer.</p>
+            )}
+            <p style={{ color: feedbackColor, fontWeight: 'bold', fontSize: '1.1rem', marginBottom: '10px' }}> 
+              {feedback}
+            </p>
+          </div>
         </>
       )}
       

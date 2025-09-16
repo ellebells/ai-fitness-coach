@@ -59,6 +59,9 @@ function Workout() {
     
     // State to track if the user's form is correct for the timer
     const [isFormCorrect, setIsFormCorrect] = useState(false);
+    
+    // State to track previous rep count for voice feedback
+    const [prevRepCount, setPrevRepCount] = useState(0);
 
     // Pass the new state to the hook
     const { repCount, setRepCount, timer, stage, setStage, sessionLog, setSessionLog, logExercise } = useWorkoutManager(isWorkoutActive, currentExercise, isFormCorrect);
@@ -116,6 +119,7 @@ function Workout() {
         // Reset stage and rep counter when changing exercise
         setStage(null);
         setRepCount(0);
+        setPrevRepCount(0); // Reset previous rep count
         console.log(`Exercise changed to ${exerciseName}. Stage and rep count reset.`);
     }, []);
     
@@ -166,6 +170,17 @@ function Workout() {
         setFeedback({ feedback: 'Starting workout...', feedbackColor: 'white' });
       }
     }, [isWorkoutActive, logExercise]); // Removed sessionLog and setSessionLog to prevent infinite loop
+    
+    // Effect to provide voice feedback when rep count increases
+    useEffect(() => {
+        if (isWorkoutActive && !isResting && currentExercise.type === 'reps' && repCount > prevRepCount && repCount > 0) {
+            speak(`${repCount}`);
+            setPrevRepCount(repCount);
+        } else if (repCount === 0 && prevRepCount > 0) {
+            // Reset when exercise changes or workout stops
+            setPrevRepCount(0);
+        }
+    }, [repCount, isWorkoutActive, isResting, currentExercise.type, prevRepCount]);
     
     useEffect(() => {
         if (!isWorkoutActive || !activeRoutine || isResting) return;
