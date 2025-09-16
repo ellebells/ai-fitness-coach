@@ -24,8 +24,6 @@ function StatusPanel({
   target, 
   isResting, 
   restTimeLeft, 
-  onSkipRest,
-  onAddRestTime,
   isFormCorrect,
   isWorkoutActive
 }) {
@@ -60,11 +58,6 @@ function StatusPanel({
               alt={`${nextExercise?.name} form`}
               onError={(e) => { e.target.style.display = 'none'; }}
             />
-          </div>
-
-          <div className="rest-controls">
-            <button className="btn-secondary" onClick={onSkipRest}>Skip Rest</button>
-            <button className="btn-primary" onClick={onAddRestTime}>+15s Rest</button>
           </div>
         </div>
       ) : (

@@ -187,7 +187,13 @@ function Workout() {
 
     const handleAddRestTime = useCallback(() => {
         if(isResting) {
+            // If already resting, add 15 seconds to current rest
             setRestTimeLeft(prev => prev + 15);
+        } else {
+            // If not resting, start a rest period of 15 seconds
+            setIsResting(true);
+            setRestTimeLeft(15);
+            setFeedback({ feedback: 'Rest time added!', feedbackColor: 'cyan' });
         }
     }, [isResting]);
 
@@ -227,7 +233,7 @@ function Workout() {
                         break;
                     case 'ADD_REST': 
                         console.log('ADD_REST command detected');
-                        if (isResting) handleAddRestTime(); 
+                        handleAddRestTime(); // Remove the isResting check since handleAddRestTime now handles both cases
                         break;
                     case 'START_ROUTINE':
                         console.log('START_ROUTINE command detected, entity:', command.entity);
@@ -346,8 +352,6 @@ function Workout() {
                     target={activeRoutine ? activeRoutine.exercises[exerciseIndex].target : null}
                     isResting={isResting}
                     restTimeLeft={restTimeLeft}
-                    onSkipRest={handleSkipRest}
-                    onAddRestTime={handleAddRestTime}
                     isFormCorrect={isFormCorrect}
                     isWorkoutActive={isWorkoutActive}
                 />

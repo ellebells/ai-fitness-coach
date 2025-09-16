@@ -33,9 +33,14 @@ function Controls({
       {isWorkoutActive && activeRoutine && (
         <div className="workout-controls">
           {!isResting ? (
-            <button className="btn-warning" onClick={onSkipExercise}>
-              Skip Exercise
-            </button>
+            <>
+              <button className="btn-warning" onClick={onSkipExercise}>
+                Skip Exercise
+              </button>
+              <button className="btn-secondary" onClick={onAddRestTime}>
+                Add Rest (+15s)
+              </button>
+            </>
           ) : (
             <>
               <button className="btn-warning" onClick={onSkipRest}>
