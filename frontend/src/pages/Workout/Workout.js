@@ -13,7 +13,7 @@ import './Workout.css';
 const allExercises = [
     { name: 'Plank', type: 'duration' }, { name: 'Push-up', type: 'reps' }, { name: 'Squat', type: 'reps' },
     { name: 'Bridge', type: 'reps' }, { name: 'Bird-dog', type: 'duration' }, { name: 'High Knees', type: 'reps' },
-    { name: 'Lunges', type: 'reps' }, { name: 'Superman', type: 'duration' }, { name: 'Wall-sit', type: 'duration' },
+    { name: 'Lunges', type: 'reps' }, { name: 'Superman', type: 'reps' }, { name: 'Wall-sit', type: 'duration' },
 ];
 
 const workoutTemplates = {
@@ -37,7 +37,7 @@ const workoutTemplates = {
         name: 'Upper Body & Posture',
         exercises: [
             { name: 'Push-up', type: 'reps', target: 10, rest: 20 },
-            { name: 'Superman', type: 'duration', target: 30, rest: 15 },
+            { name: 'Superman', type: 'reps', target: 15, rest: 15 },
             { name: 'Wall-sit', type: 'duration', target: 45, rest: 0 }
         ]
     }

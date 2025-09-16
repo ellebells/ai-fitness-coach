@@ -49,7 +49,6 @@ function VideoFeed({ onPoseUpdate, isWorkoutActive, currentExercise, feedbackCol
         // Use a switch statement to call the correct evaluation function for the current exercise
         switch(currentExercise.name) {
           case 'Plank': feedbackResult = evaluatePlank(keypoints); break;
-          case 'Superman': feedbackResult = evaluateSuperman(keypoints); break;
           case 'Wall-sit': feedbackResult = evaluateWallSit(keypoints); break;
           case 'Bird-dog': feedbackResult = evaluateBirdDog(keypoints); break;
           case 'Push-up': feedbackResult = evaluatePushup(keypoints, latestStageRef.current, latestRepCountRef.current); break;
@@ -57,6 +56,7 @@ function VideoFeed({ onPoseUpdate, isWorkoutActive, currentExercise, feedbackCol
           case 'Bridge': feedbackResult = evaluateBridge(keypoints, latestStageRef.current, latestRepCountRef.current); break;
           case 'Lunges': feedbackResult = evaluateLunge(keypoints, latestStageRef.current, latestRepCountRef.current); break;
           case 'High Knees': feedbackResult = evaluateHighKnees(keypoints, latestStageRef.current, latestRepCountRef.current); break;
+          case 'Superman': feedbackResult = evaluateSuperman(keypoints, latestStageRef.current, latestRepCountRef.current); break;
           default:
             feedbackResult = { feedback: 'Evaluation for this exercise is not yet implemented.', feedbackColor: 'orange', isCorrectForm: false };
         }
