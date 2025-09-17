@@ -77,14 +77,17 @@ function Workout() {
         }
     }, []);
 
-    const startRoutine = (routineKey) => {
-        const routine = workoutTemplates[routineKey];
+    const startRoutine = (routineKey, customizedRoutine = null) => {
+        // Use the customized routine if provided, otherwise use the default template
+        const routine = customizedRoutine || workoutTemplates[routineKey];
         setActiveRoutine(routine);
         setExerciseIndex(0);
         setCurrentExercise(routine.exercises[0]);
         setShowRoutineModal(false);
+        
+        const customizationMessage = customizedRoutine ? " with your custom targets" : "";
         setFeedback({ feedback: `Starting routine: ${routine.name}`, feedbackColor: 'white' });
-        speak(`${routine.name} routine selected. Get ready!`);
+        speak(`${routine.name} routine selected${customizationMessage}. Get ready!`);
     };
 
     const handlePoseUpdate = (poseFeedback) => {

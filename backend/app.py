@@ -29,12 +29,12 @@ except Exception as e:
     print(f"CRITICAL ERROR: Could not load Whisper model: {e}")
     transcriber = None
 
-# Model 2: Intent Classification (Facebook BART Base - Pre-trained)
-# BART is a pre-trained transformer model good for zero-shot classification
-# We're using the "base" version for faster inference while maintaining good performance
+# Model 2: Intent Classification (Facebook BART Large MNLI - Pre-trained)
+# BART-large-mnli is specifically trained for natural language inference and classification
+# Better performance for intent recognition with your hardware specs
 try:
-    print("Loading Intent Classification model (BART Base - Pre-trained)...")
-    classifier = pipeline("zero-shot-classification", model="facebook/bart-base")
+    print("Loading Intent Classification model (BART Large MNLI - Pre-trained)...")
+    classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
     print("Intent classification model loaded successfully.")
 except Exception as e:
     print(f"CRITICAL ERROR: Could not load intent classification model: {e}")
@@ -80,6 +80,18 @@ ROUTINE_ENTITIES = {
 }
 
 # --- API Routes ---
+@app.route('/', methods=['GET'])
+def root():
+    """Root endpoint to confirm the server is running."""
+    return jsonify({
+        "message": "AI Fitness Coach Backend is running!",
+        "status": "healthy",
+        "endpoints": {
+            "health": "/api/health",
+            "speech": "/api/speech (POST)"
+        }
+    }), 200
+
 @app.route('/api/health', methods=['GET'])
 def health_check():
     """A simple endpoint to confirm the server is running."""

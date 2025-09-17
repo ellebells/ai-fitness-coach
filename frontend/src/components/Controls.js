@@ -32,7 +32,6 @@ function Controls({
   };
 
   const handleVoiceCommand = () => {
-    speak("Listening for voice command.");
     onVoiceCommand();
   };
 
