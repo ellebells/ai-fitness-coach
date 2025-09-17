@@ -137,7 +137,20 @@ def recognize_speech():
             speech_array,
             generate_kwargs={"temperature": 0.0}  # More deterministic output
         )
-        transcribed_text = transcription_result.get('text', '').strip()
+        
+        # Handle different return formats from Whisper pipeline
+        if isinstance(transcription_result, dict):
+            transcribed_text = transcription_result.get('text', '').strip()
+        elif isinstance(transcription_result, list) and len(transcription_result) > 0:
+            # Sometimes returns a list of results
+            first_result = transcription_result[0]
+            if isinstance(first_result, dict):
+                transcribed_text = first_result.get('text', '').strip()
+            else:
+                transcribed_text = str(first_result).strip()
+        else:
+            # Fallback for other formats
+            transcribed_text = str(transcription_result).strip()
         
         print(f"WHISPER RAW TRANSCRIPTION: '{transcribed_text}'")
 
