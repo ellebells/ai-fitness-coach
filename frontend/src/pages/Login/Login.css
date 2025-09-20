@@ -2,6 +2,60 @@
    are already styling the elements on this page. We create it for good 
    practice, in case we want to add component-specific styles later. */
 
+/* Contrast Toggle Button */
+.contrast-toggle-container {
+   position: absolute;
+   top: 20px;
+   right: 20px;
+   z-index: 1000;
+}
+
+.contrast-toggle-btn {
+   background: rgba(0, 102, 204, 0.9);
+   color: white;
+   border: 2px solid #0066cc;
+   padding: 8px 12px;
+   border-radius: 6px;
+   cursor: pointer;
+   font-size: 0.9em;
+   font-weight: 500;
+   transition: all 0.3s ease;
+   backdrop-filter: blur(5px);
+   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.contrast-toggle-btn:hover {
+   background: rgba(0, 102, 204, 1);
+   transform: translateY(-1px);
+   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.contrast-toggle-btn:active {
+   transform: translateY(0);
+   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Theme-specific styling for contrast toggle */
+body.theme-high .contrast-toggle-btn {
+   background: #000000;
+   border-color: #ffffff;
+   color: #ffffff;
+}
+
+body.theme-high .contrast-toggle-btn:hover {
+   background: #333333;
+}
+
+body.theme-low .contrast-toggle-btn {
+   background: rgba(150, 150, 150, 0.9);
+   border-color: #999999;
+   color: #333333;
+}
+
+body.theme-low .contrast-toggle-btn:hover {
+   background: rgba(150, 150, 150, 1);
+}
+
 .device-notice {
    color: #888;
    font-size: 0.9em;
@@ -80,6 +134,12 @@
    flex-grow: 1;
 }
 
+.profile-actions {
+   display: flex;
+   gap: 8px;
+   margin-left: 10px;
+}
+
 .profile-name {
    font-weight: bold;
    color: #fff;
@@ -102,11 +162,24 @@
    border-radius: 3px;
    cursor: pointer;
    font-size: 0.8em;
-   margin-left: 10px;
 }
 
 .btn-export-small:hover {
    background: #0052a3;
+}
+
+.btn-delete-small {
+   background: #dc3545;
+   color: white;
+   border: none;
+   padding: 4px 8px;
+   border-radius: 3px;
+   cursor: pointer;
+   font-size: 0.8em;
+}
+
+.btn-delete-small:hover {
+   background: #c82333;
 }
 
 .no-profiles {

@@ -9,12 +9,13 @@ function WorkoutModal({ routines, onSelectRoutine, onClose }) {
     const routine = routines[routineKey];
     setSelectedRoutine({ key: routineKey, ...routine });
     
-    // Initialize customized exercises with default values
+    // Initialize customized exercises with default values including rest
     const initialCustomization = {};
     routine.exercises.forEach((exercise, index) => {
       initialCustomization[index] = {
         ...exercise,
-        target: exercise.target
+        target: exercise.target,
+        rest: exercise.rest || 0 // Include rest time
       };
     });
     setCustomizedExercises(initialCustomization);
@@ -26,6 +27,16 @@ function WorkoutModal({ routines, onSelectRoutine, onClose }) {
       [exerciseIndex]: {
         ...prev[exerciseIndex],
         target: Math.max(1, parseInt(newTarget) || 1) // Ensure minimum value of 1
+      }
+    }));
+  };
+
+  const handleRestChange = (exerciseIndex, newRest) => {
+    setCustomizedExercises(prev => ({
+      ...prev,
+      [exerciseIndex]: {
+        ...prev[exerciseIndex],
+        rest: Math.max(0, parseInt(newRest) || 0) // Ensure minimum value of 0
       }
     }));
   };
@@ -80,7 +91,7 @@ function WorkoutModal({ routines, onSelectRoutine, onClose }) {
         ) : (
           <div className="routine-customization">
             <div className="customization-header">
-              <p>Adjust the targets for each exercise. Default values are recommended.</p>
+              <p>Adjust the targets and rest times for each exercise. Default values are recommended.</p>
             </div>
             
             <div className="exercise-list">
@@ -94,36 +105,59 @@ function WorkoutModal({ routines, onSelectRoutine, onClose }) {
                   </div>
                   
                   <div className="exercise-controls">
-                    <button 
-                      className="adjust-btn"
-                      onClick={() => handleTargetChange(index, customizedExercises[index]?.target - 1)}
-                    >
-                      -
-                    </button>
-                    <input
-                      type="number"
-                      className="target-input"
-                      value={customizedExercises[index]?.target || exercise.target}
-                      onChange={(e) => handleTargetChange(index, e.target.value)}
-                      min="1"
-                      max={exercise.type === 'reps' ? "100" : "300"}
-                    />
-                    <button 
-                      className="adjust-btn"
-                      onClick={() => handleTargetChange(index, customizedExercises[index]?.target + 1)}
-                    >
-                      +
-                    </button>
-                    <span className="unit">
-                      {exercise.type === 'reps' ? 'reps' : 'sec'}
-                    </span>
-                  </div>
-                  
-                  {exercise.rest > 0 && (
-                    <div className="rest-info">
-                      Rest: {exercise.rest}s
+                    <div className="control-group">
+                      <label className="control-label">Target:</label>
+                      <button 
+                        className="adjust-btn"
+                        onClick={() => handleTargetChange(index, (customizedExercises[index]?.target || exercise.target) - 1)}
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        className="target-input"
+                        value={customizedExercises[index]?.target || exercise.target}
+                        onChange={(e) => handleTargetChange(index, e.target.value)}
+                        min="1"
+                        max={exercise.type === 'reps' ? "100" : "300"}
+                      />
+                      <button 
+                        className="adjust-btn"
+                        onClick={() => handleTargetChange(index, (customizedExercises[index]?.target || exercise.target) + 1)}
+                      >
+                        +
+                      </button>
+                      <span className="unit">
+                        {exercise.type === 'reps' ? 'reps' : 'sec'}
+                      </span>
                     </div>
-                  )}
+                    
+                    <div className="control-group">
+                      <label className="control-label">Rest:</label>
+                      <button 
+                        className="adjust-btn"
+                        onClick={() => handleRestChange(index, (customizedExercises[index]?.rest || exercise.rest || 0) - 5)}
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        className="target-input"
+                        value={customizedExercises[index]?.rest !== undefined ? customizedExercises[index].rest : (exercise.rest || 0)}
+                        onChange={(e) => handleRestChange(index, e.target.value)}
+                        min="0"
+                        max="180"
+                        step="5"
+                      />
+                      <button 
+                        className="adjust-btn"
+                        onClick={() => handleRestChange(index, (customizedExercises[index]?.rest || exercise.rest || 0) + 5)}
+                      >
+                        +
+                      </button>
+                      <span className="unit">sec</span>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>

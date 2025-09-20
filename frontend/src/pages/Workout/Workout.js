@@ -4,16 +4,19 @@ import Controls from '../../components/Controls';
 import VideoFeed from '../../components/VideoFeed';
 import StatusPanel from '../../components/StatusPanel';
 import WorkoutModal from '../../components/WorkoutModal';
+import DurationTimerModal from '../../components/DurationTimerModal';
+import SettingsModal from '../../components/SettingsModal';
 import { useWorkoutManager } from '../../hooks/useWorkoutManager';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import { speak } from '../../utils/speechUtils';
+import { testBackendConnection, debugApiEndpoints } from '../../config/apiUtils';
 import './Workout.css';
 
 // --- Data Structures ---
 const allExercises = [
-    { name: 'Plank', type: 'duration' }, { name: 'Push-up', type: 'reps' }, { name: 'Squat', type: 'reps' },
-    { name: 'Bridge', type: 'reps' }, { name: 'Bird-dog', type: 'duration' }, { name: 'High Knees', type: 'reps' },
-    { name: 'Lunges', type: 'reps' }, { name: 'Superman', type: 'reps' }, { name: 'Wall-sit', type: 'duration' },
+    { name: 'Plank', type: 'duration', target: 30 }, { name: 'Push-up', type: 'reps', target: 10 }, { name: 'Squat', type: 'reps', target: 15 },
+    { name: 'Bridge', type: 'reps', target: 15 }, { name: 'Bird-dog', type: 'duration', target: 45 }, { name: 'High Knees', type: 'reps', target: 30 },
+    { name: 'Lunges', type: 'reps', target: 20 }, { name: 'Superman', type: 'reps', target: 12 }, { name: 'Wall-sit', type: 'duration', target: 30 },
 ];
 
 const workoutTemplates = {
@@ -57,6 +60,34 @@ function Workout() {
     const [isResting, setIsResting] = useState(false);
     const [restTimeLeft, setRestTimeLeft] = useState(0);
     
+    // State for duration timer modal
+    const [showDurationModal, setShowDurationModal] = useState(false);
+    const [selectedDurationExercise, setSelectedDurationExercise] = useState(null);
+    const [useCountdownTimer, setUseCountdownTimer] = useState(false);
+    
+    // State for settings modal and accessibility preferences
+    const [showSettingsModal, setShowSettingsModal] = useState(false);
+    const [settings, setSettings] = useState(() => {
+        // Load settings from localStorage or use defaults
+        try {
+            const savedSettings = localStorage.getItem('accessibilitySettings');
+            return savedSettings ? JSON.parse(savedSettings) : {
+                voiceMuted: false,
+                contrastMode: 'normal', // 'normal', 'high', 'low'
+                fontSize: 'normal', // 'small', 'normal', 'large', 'extra-large'
+                reduceMotion: false
+            };
+        } catch (error) {
+            console.error('Error loading settings from localStorage:', error);
+            return {
+                voiceMuted: false,
+                contrastMode: 'normal',
+                fontSize: 'normal',
+                reduceMotion: false
+            };
+        }
+    });
+    
     // State to track if the user's form is correct for the timer
     const [isFormCorrect, setIsFormCorrect] = useState(false);
     
@@ -64,9 +95,26 @@ function Workout() {
     const [prevRepCount, setPrevRepCount] = useState(0);
 
     // Pass the new state to the hook
-    const { repCount, setRepCount, timer, stage, setStage, sessionLog, setSessionLog, logExercise } = useWorkoutManager(isWorkoutActive, currentExercise, isFormCorrect);
+    const { repCount, setRepCount, timer, stage, setStage, sessionLog, setSessionLog, logExercise } = useWorkoutManager(isWorkoutActive, currentExercise, isFormCorrect, useCountdownTimer);
     const { isListening, command, startListening, clearCommand } = useSpeechRecognition();
     const [transcription, setTranscription] = useState('Click "Voice Command" to start.');
+    
+    // Custom speak function that respects voice mute setting
+    const speakIfEnabled = useCallback((text) => {
+        if (!settings.voiceMuted) {
+            speak(text);
+        }
+    }, [settings.voiceMuted]);
+
+    // Handle settings changes and persist to localStorage
+    const handleSettingsChange = useCallback((newSettings) => {
+        setSettings(newSettings);
+        try {
+            localStorage.setItem('accessibilitySettings', JSON.stringify(newSettings));
+        } catch (error) {
+            console.error('Error saving settings to localStorage:', error);
+        }
+    }, []);
     
     useEffect(() => {
         const storedName = localStorage.getItem('userName');
@@ -75,7 +123,65 @@ function Workout() {
             // Display "Guest" for guest sessions instead of the long session ID
             setUserName(isGuest ? 'Guest' : storedName);
         }
+        
+        // Test backend connection and debug API endpoints
+        debugApiEndpoints();
+        testBackendConnection().then(result => {
+            if (!result.success) {
+                console.error('❌ Backend connection failed:', result.error);
+            }
+        });
     }, []);
+
+    // Effect to apply theme and accessibility settings to the body
+    useEffect(() => {
+        const body = document.body;
+        
+        // Remove existing theme classes
+        body.classList.remove('theme-normal', 'theme-high', 'theme-low');
+        body.classList.remove('font-size-small', 'font-size-normal', 'font-size-large', 'font-size-extra-large');
+        body.classList.remove('reduce-motion');
+        
+        // Force reflow to ensure changes take effect
+        // eslint-disable-next-line no-unused-expressions
+        body.offsetHeight;
+        
+        // Apply new theme classes
+        body.classList.add(`theme-${settings.contrastMode}`);
+        body.classList.add(`font-size-${settings.fontSize}`);
+        
+        if (settings.reduceMotion) {
+            body.classList.add('reduce-motion');
+        }
+        
+        // Apply immediate inline styles for testing
+        if (settings.contrastMode === 'high') {
+            body.style.backgroundColor = '#000000';
+            body.style.color = '#ffffff';
+            body.style.border = '5px solid red';
+        } else if (settings.contrastMode === 'low') {
+            body.style.backgroundColor = '#f8f8f8';
+            body.style.color = '#666666';
+            body.style.border = '5px solid blue';
+            body.style.filter = 'contrast(0.6) brightness(1.3)';
+        } else {
+            body.style.backgroundColor = '#121212';
+            body.style.color = '#e0e0e0';
+            body.style.border = '5px solid green';
+            body.style.filter = '';
+        }
+        
+        return () => {
+            // Cleanup on unmount
+            body.classList.remove('theme-normal', 'theme-high', 'theme-low');
+            body.classList.remove('font-size-small', 'font-size-normal', 'font-size-large', 'font-size-extra-large');
+            body.classList.remove('reduce-motion');
+            body.style.backgroundColor = '';
+            body.style.color = '';
+            body.style.border = '';
+            body.style.filter = '';
+        };
+    }, [settings.contrastMode, settings.fontSize, settings.reduceMotion]);
 
     const startRoutine = (routineKey, customizedRoutine = null) => {
         // Use the customized routine if provided, otherwise use the default template
@@ -92,22 +198,11 @@ function Workout() {
 
     const handlePoseUpdate = (poseFeedback) => {
         if (isWorkoutActive && !isResting) {
-            console.log('Pose feedback received:', poseFeedback);
-            console.log('Current repCount state:', repCount);
-            console.log('Pose feedback repCount:', poseFeedback.repCount);
-            console.log('repCount comparison:', poseFeedback.repCount !== repCount);
-            
             setFeedback(poseFeedback);
             if (poseFeedback.repCount !== undefined && poseFeedback.repCount !== repCount) {
-                console.log(`Rep count changed from ${repCount} to ${poseFeedback.repCount}`);
                 setRepCount(poseFeedback.repCount);
-                // Force a log to verify the state actually changed
-                setTimeout(() => {
-                    console.log('RepCount after setState:', repCount);
-                }, 100);
             }
             if (poseFeedback.stage && poseFeedback.stage !== stage) {
-                console.log(`Stage changed from ${stage} to ${poseFeedback.stage}`);
                 setStage(poseFeedback.stage);
             }
             if (poseFeedback.isCorrectForm !== undefined) setIsFormCorrect(poseFeedback.isCorrectForm);
@@ -117,17 +212,56 @@ function Workout() {
     const handleExerciseChange = useCallback((exerciseName) => {
         const selected = allExercises.find(ex => ex.name === exerciseName);
         if (selected) {
-            setCurrentExercise(selected);
-            setActiveRoutine(null);
-            speak(`${exerciseName} selected.`);
+            // For duration exercises, show the custom modal
+            if (selected.type === 'duration') {
+                setSelectedDurationExercise(selected);
+                setShowDurationModal(true);
+            } else {
+                // For rep exercises, directly set the exercise
+                setCurrentExercise(selected);
+                setActiveRoutine(null);
+                setUseCountdownTimer(false);
+                speak(`${exerciseName} selected.`);
+                // Reset exercise state
+                setIsFormCorrect(false);
+                setFeedback({ feedback: 'Ready to start.', feedbackColor: 'white' });
+                setStage(null);
+                setRepCount(0);
+                setPrevRepCount(0);
+                console.log(`Exercise changed to ${exerciseName}. Stage and rep count reset.`);
+            }
         }
-        setIsFormCorrect(false);
-        setFeedback({ feedback: 'Ready to start.', feedbackColor: 'white' });
-        // Reset stage and rep counter when changing exercise
-        setStage(null);
-        setRepCount(0);
-        setPrevRepCount(0); // Reset previous rep count
-        console.log(`Exercise changed to ${exerciseName}. Stage and rep count reset.`);
+    }, [setStage, setRepCount]);
+
+    const handleDurationModalConfirm = useCallback((config) => {
+        if (selectedDurationExercise) {
+            // Create a copy of the exercise with the custom duration
+            const exerciseWithCustomDuration = {
+                ...selectedDurationExercise,
+                target: config.duration
+            };
+            
+            setCurrentExercise(exerciseWithCustomDuration);
+            setActiveRoutine(null);
+            setUseCountdownTimer(config.useCountdown);
+            
+            speak(`${selectedDurationExercise.name} selected with ${config.useCountdown ? 'countdown' : 'count-up'} timer for ${config.duration} seconds.`);
+            
+            // Reset exercise state
+            setIsFormCorrect(false);
+            setFeedback({ feedback: 'Ready to start.', feedbackColor: 'white' });
+            setStage(null);
+            setRepCount(0);
+            setPrevRepCount(0);
+            
+            console.log(`Duration exercise ${selectedDurationExercise.name} configured: ${config.duration}s, countdown: ${config.useCountdown}`);
+        }
+        setSelectedDurationExercise(null);
+    }, [selectedDurationExercise, setStage, setRepCount]);
+
+    const handleDurationModalClose = useCallback(() => {
+        setShowDurationModal(false);
+        setSelectedDurationExercise(null);
     }, []);
     
     const advanceToNextExercise = useCallback(() => {
@@ -181,23 +315,32 @@ function Workout() {
     // Effect to provide voice feedback when rep count increases
     useEffect(() => {
         if (isWorkoutActive && !isResting && currentExercise.type === 'reps' && repCount > prevRepCount && repCount > 0) {
-            speak(`${repCount}`);
+            speakIfEnabled(`${repCount}`);
             setPrevRepCount(repCount);
         } else if (repCount === 0 && prevRepCount > 0) {
             // Reset when exercise changes or workout stops
             setPrevRepCount(0);
         }
-    }, [repCount, isWorkoutActive, isResting, currentExercise.type, prevRepCount]);
+    }, [repCount, isWorkoutActive, isResting, currentExercise.type, prevRepCount, speakIfEnabled]);
     
     useEffect(() => {
         if (!isWorkoutActive || !activeRoutine || isResting) return;
         const current = activeRoutine.exercises[exerciseIndex];
-        const isComplete = (current.type === 'reps' && repCount >= current.target) || (current.type === 'duration' && timer >= current.target);
+        let isComplete = false;
+        
+        if (current.type === 'reps') {
+            isComplete = repCount >= current.target;
+        } else if (current.type === 'duration') {
+            // For countdown mode: timer reaches 0
+            // For count-up mode: timer reaches target
+            isComplete = useCountdownTimer ? timer <= 0 : timer >= current.target;
+        }
+        
         if (isComplete) {
             logExercise();
             advanceToNextExercise();
         }
-    }, [repCount, timer, isWorkoutActive, activeRoutine, exerciseIndex, isResting, logExercise, advanceToNextExercise]);
+    }, [repCount, timer, isWorkoutActive, activeRoutine, exerciseIndex, isResting, logExercise, advanceToNextExercise, useCountdownTimer]);
     
     useEffect(() => {
         if (isResting && isWorkoutActive) {
@@ -355,6 +498,95 @@ function Workout() {
         navigate('/');
     };
 
+    // Keyboard shortcuts handler - placed after all function definitions
+    useEffect(() => {
+        const handleKeyPress = (event) => {
+            // Only handle shortcuts when no modal is open and not typing in an input
+            if (showRoutineModal || showDurationModal || showSettingsModal || 
+                event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT' || 
+                event.target.tagName === 'TEXTAREA') {
+                return;
+            }
+
+            // Handle Escape key
+            if (event.key === 'Escape') {
+                if (showRoutineModal) setShowRoutineModal(false);
+                if (showDurationModal) setShowDurationModal(false);
+                if (showSettingsModal) setShowSettingsModal(false);
+                return;
+            }
+
+            switch (event.key.toLowerCase()) {
+                case ' ': // Space - Start/Stop workout
+                    event.preventDefault();
+                    handleWorkoutToggle();
+                    break;
+                case 'r': // R - Reset timer
+                    if (isWorkoutActive) {
+                        // Reset current exercise
+                        setRepCount(0);
+                        setStage('ready');
+                        speakIfEnabled("Exercise reset.");
+                    }
+                    break;
+                case 'n': // N - Next exercise (skip)
+                    if (isWorkoutActive) {
+                        handleSkipExercise();
+                    }
+                    break;
+                case 'p': // P - Previous exercise (manual rest skip when resting)
+                    if (isResting) {
+                        handleSkipRest();
+                    }
+                    break;
+                case 'v': // V - Toggle voice commands
+                    if (!isListening) {
+                        startListening();
+                    }
+                    break;
+                case 's': // S - Open settings
+                    event.preventDefault();
+                    setShowSettingsModal(true);
+                    break;
+                case 'h': // H - View history
+                    navigate('/history');
+                    break;
+                case 'l': // L - Logout
+                    handleLogout();
+                    break;
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    // Number keys for routine selection
+                    const routineNumber = parseInt(event.key);
+                    const routineKeys = Object.keys(workoutTemplates);
+                    if (routineNumber <= routineKeys.length) {
+                        const routineKey = routineKeys[routineNumber - 1];
+                        const routine = workoutTemplates[routineKey];
+                        startRoutine(routine);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        };
+
+        document.addEventListener('keydown', handleKeyPress);
+        return () => {
+            document.removeEventListener('keydown', handleKeyPress);
+        };
+    }, [
+        showRoutineModal, showDurationModal, showSettingsModal, isWorkoutActive, 
+        isListening, isResting, handleWorkoutToggle, handleSkipExercise, handleSkipRest, 
+        startListening, navigate, handleLogout, setRepCount, setStage, speakIfEnabled
+    ]);
+
     return (
         <div className="workout-container">
             {showRoutineModal && (
@@ -364,9 +596,25 @@ function Workout() {
                     onClose={() => setShowRoutineModal(false)} 
                 />
             )}
+            <DurationTimerModal
+                isOpen={showDurationModal}
+                onClose={handleDurationModalClose}
+                onConfirm={handleDurationModalConfirm}
+                exerciseName={selectedDurationExercise?.name || ''}
+                defaultTarget={selectedDurationExercise?.target || 30}
+            />
+            <SettingsModal
+                isOpen={showSettingsModal}
+                onClose={() => setShowSettingsModal(false)}
+                settings={settings}
+                onSettingsChange={handleSettingsChange}
+            />
             <header className="workout-header">
                 <h1>AI Fitness Coach</h1>
                 <div className="header-buttons">
+                    <button className="btn-secondary" onClick={() => setShowSettingsModal(true)} title="Settings (S)">
+                        ⚙️ Settings
+                    </button>
                     <button className="btn-secondary" onClick={() => navigate('/history')}>View History</button>
                     <button className="btn-secondary" onClick={handleLogout}>Logout</button>
                 </div>

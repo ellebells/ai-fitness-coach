@@ -151,8 +151,22 @@
 
 .exercise-controls {
     display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.control-group {
+    display: flex;
     align-items: center;
     gap: 10px;
+    flex-wrap: wrap;
+}
+
+.control-label {
+    color: #ccc;
+    font-size: 0.9em;
+    min-width: 50px;
+    font-weight: bold;
 }
 
 .adjust-btn {

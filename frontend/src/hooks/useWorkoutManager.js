@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-// The hook now accepts isFormCorrect to control the timer
-export const useWorkoutManager = (isWorkoutActive, currentExercise, isFormCorrect) => {
+// The hook now accepts isFormCorrect and useCountdownTimer to control the timer
+export const useWorkoutManager = (isWorkoutActive, currentExercise, isFormCorrect, useCountdownTimer = false) => {
   const [repCount, setRepCount] = useState(0);
   const [timer, setTimer] = useState(0);
   const [stage, setStage] = useState('up'); // For rep-counting state machine
@@ -43,7 +43,15 @@ export const useWorkoutManager = (isWorkoutActive, currentExercise, isFormCorrec
       // Start the timer if it's not already running
       if (!timerIntervalRef.current) {
         timerIntervalRef.current = setInterval(() => {
-          setTimer(prev => prev + 1);
+          setTimer(prev => {
+            if (useCountdownTimer) {
+              // Countdown mode: decrease timer
+              return Math.max(0, prev - 1);
+            } else {
+              // Count-up mode: increase timer
+              return prev + 1;
+            }
+          });
         }, 1000);
       }
     } else {
@@ -54,7 +62,7 @@ export const useWorkoutManager = (isWorkoutActive, currentExercise, isFormCorrec
     
     // Cleanup function to clear the interval when the component unmounts or dependencies change
     return () => clearInterval(timerIntervalRef.current);
-  }, [isWorkoutActive, currentExercise.type, isFormCorrect]);
+  }, [isWorkoutActive, currentExercise.type, isFormCorrect, useCountdownTimer]);
 
   // This effect handles resetting state when the exercise changes
   useEffect(() => {
@@ -65,8 +73,13 @@ export const useWorkoutManager = (isWorkoutActive, currentExercise, isFormCorrec
     // Reset counters and stage for the new exercise
     setRepCount(0);
     setStage('up');
-    setTimer(0);
-  }, [currentExercise, isWorkoutActive]); // Removed logExercise from dependencies to prevent reset loop
+    // Initialize timer based on mode
+    if (currentExercise.type === 'duration') {
+      setTimer(useCountdownTimer ? (currentExercise.target || 30) : 0);
+    } else {
+      setTimer(0);
+    }
+  }, [currentExercise, isWorkoutActive, useCountdownTimer]); // Added useCountdownTimer to dependencies
 
   // Return all the state and functions needed by the main Workout component
   return { repCount, setRepCount, timer, stage, setStage, sessionLog, setSessionLog, logExercise };

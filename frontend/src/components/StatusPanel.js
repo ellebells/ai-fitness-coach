@@ -27,8 +27,6 @@ function StatusPanel({
   isFormCorrect,
   isWorkoutActive
 }) {
-  // Debug log to see if StatusPanel receives updated repCount
-  console.log('StatusPanel render - repCount:', repCount);
   const exerciseName = exercise?.name || 'No Exercise Selected';
   const exerciseType = exercise?.type;
 
@@ -61,11 +59,7 @@ function StatusPanel({
               src={`/images/exercises/${formatImageName(nextExercise?.name)}.png`} 
               alt={`${nextExercise?.name} form`}
               onError={(e) => { 
-                console.log(`Failed to load rest image: /images/exercises/${formatImageName(nextExercise?.name)}.png`);
                 e.target.style.display = 'none'; 
-              }}
-              onLoad={() => {
-                console.log(`Successfully loaded rest image: /images/exercises/${formatImageName(nextExercise?.name)}.png`);
               }}
             />
           </div>
@@ -87,11 +81,7 @@ function StatusPanel({
               src={`/images/exercises/${formatImageName(exerciseName)}.png`} 
               alt={`${exerciseName} form`}
               onError={(e) => { 
-                console.log(`Failed to load image: /images/exercises/${formatImageName(exerciseName)}.png`);
                 e.target.style.display = 'none'; 
-              }}
-              onLoad={() => {
-                console.log(`Successfully loaded image: /images/exercises/${formatImageName(exerciseName)}.png`);
               }}
             />
           </div>

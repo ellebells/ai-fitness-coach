@@ -132,3 +132,34 @@ export const getAllProfiles = () => {
     return new Date(b.lastSession) - new Date(a.lastSession);
   });
 };
+
+export const deleteProfile = (userName) => {
+  try {
+    // Don't allow deletion of guest sessions
+    if (userName.startsWith('Guest_')) {
+      throw new Error('Guest sessions cannot be deleted.');
+    }
+
+    // Check if the profile exists
+    const historyKey = `${userName}_history`;
+    const sessions = localStorage.getItem(historyKey);
+    
+    if (!sessions) {
+      throw new Error(`Profile "${userName}" not found.`);
+    }
+
+    // Remove the profile data
+    localStorage.removeItem(historyKey);
+    
+    // If this was the current user, clear the current session
+    const currentUser = localStorage.getItem('userName');
+    if (currentUser === userName) {
+      localStorage.removeItem('userName');
+      localStorage.removeItem('isGuestSession');
+    }
+
+    return { success: true, message: `Profile "${userName}" deleted successfully.` };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+};

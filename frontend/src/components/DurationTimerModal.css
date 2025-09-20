@@ -1,0 +1,238 @@
+.duration-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.duration-modal {
+    background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 450px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 10px 30px rgba(0, 255, 0, 0.2);
+    border: 1px solid #00ff00;
+    color: white;
+}
+
+.duration-modal-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.duration-modal-header h3 {
+    margin: 0 0 8px 0;
+    color: #00ff00;
+    font-size: 1.4em;
+}
+
+.duration-modal-header p {
+    margin: 0;
+    color: #cccccc;
+    font-size: 1.1em;
+}
+
+.duration-modal-content {
+    margin-bottom: 24px;
+}
+
+.duration-input-section {
+    margin-bottom: 24px;
+}
+
+.duration-input-section label {
+    display: block;
+    margin-bottom: 8px;
+    color: #00ff00;
+    font-weight: bold;
+}
+
+.duration-input-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+}
+
+.duration-btn {
+    background: #333;
+    border: 1px solid #00ff00;
+    color: #00ff00;
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    font-size: 1.2em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.duration-btn:hover {
+    background: #00ff00;
+    color: #000;
+}
+
+.duration-input {
+    width: 80px;
+    height: 40px;
+    text-align: center;
+    font-size: 1.2em;
+    font-weight: bold;
+    background: #333;
+    border: 1px solid #00ff00;
+    color: #00ff00;
+    border-radius: 6px;
+    outline: none;
+}
+
+.duration-input:focus {
+    box-shadow: 0 0 0 2px rgba(0, 255, 0, 0.3);
+}
+
+.duration-unit {
+    color: #cccccc;
+    font-size: 0.9em;
+    min-width: 60px;
+}
+
+.timer-mode-section label {
+    display: block;
+    margin-bottom: 8px;
+    color: #00ff00;
+    font-weight: bold;
+}
+
+.timer-mode-options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.timer-option {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border: 2px solid #333;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #1a1a1a;
+}
+
+.timer-option:hover {
+    border-color: #00ff00;
+    background: #2a2a2a;
+}
+
+.timer-option.selected {
+    border-color: #00ff00;
+    background: rgba(0, 255, 0, 0.1);
+}
+
+.timer-option input[type="radio"] {
+    margin-right: 12px;
+    accent-color: #00ff00;
+}
+
+.timer-option-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.timer-option-content strong {
+    color: #00ff00;
+    margin-bottom: 4px;
+}
+
+.timer-option-content span {
+    color: #cccccc;
+    font-size: 0.9em;
+}
+
+.timer-note {
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(0, 255, 0, 0.1);
+    border-radius: 6px;
+    border-left: 4px solid #00ff00;
+}
+
+.timer-note p {
+    margin: 0;
+    color: #cccccc;
+    font-size: 0.9em;
+}
+
+.duration-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.duration-btn-secondary {
+    padding: 10px 20px;
+    background: transparent;
+    border: 1px solid #666;
+    color: #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.duration-btn-secondary:hover {
+    border-color: #999;
+    background: #333;
+}
+
+.duration-btn-primary {
+    padding: 10px 20px;
+    background: #00ff00;
+    border: 1px solid #00ff00;
+    color: #000;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.duration-btn-primary:hover {
+    background: #00cc00;
+    border-color: #00cc00;
+    transform: translateY(-1px);
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+    .duration-btn,
+    .timer-option,
+    .duration-btn-primary,
+    .duration-btn-secondary {
+        transition: none;
+    }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+    .duration-modal {
+        border: 2px solid #ffffff;
+        background: #000000;
+    }
+    
+    .timer-option {
+        border-color: #ffffff;
+    }
+    
+    .timer-option.selected {
+        background: #ffffff;
+        color: #000000;
+    }
+}

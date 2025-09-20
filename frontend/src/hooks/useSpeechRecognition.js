@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import axios from 'axios';
+import { API_ENDPOINTS } from '../config/api';
 
 /**
  * A custom React hook to manage the entire speech recognition flow.
@@ -42,20 +43,15 @@ export const useSpeechRecognition = () => {
         // Combine all recorded audio chunks into a single Blob
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         
-        console.log('Sending audio to backend, blob size:', audioBlob.size);
-        
         try {
           // Send the audio blob to our backend API endpoint
-          console.log('Making request to backend...');
-          const response = await axios.post('http://localhost:5000/api/speech', audioBlob, {
+          const response = await axios.post(API_ENDPOINTS.speech, audioBlob, {
             headers: { 'Content-Type': 'application/octet-stream' },
           });
-          console.log('Backend response:', response.data);
           // On success, update the state with the structured command from the AI
           setCommand(response.data); 
         } catch (error) {
-          console.error('Error sending audio to backend:', error);
-          console.error('Error details:', error.response?.data);
+          console.error('Voice command error:', error.response?.data?.error || error.message);
           setCommand({ intent: "ERROR", transcription: 'Error processing command.' });
         }
         
@@ -90,6 +86,7 @@ export const useSpeechRecognition = () => {
     setCommand(null);
   };
   
+  // Expose the necessary state and functions to the component that uses this hook
   // Expose the necessary state and functions to the component that uses this hook
   return { isListening, command, startListening, clearCommand }; 
 };

@@ -103,6 +103,8 @@ def recognize_speech():
     This is the main AI orchestration endpoint.
     It receives an audio blob, transcribes it to text, and classifies the user's intent.
     """
+    print(f"Received speech request. Content-Type: {request.content_type}, Data size: {len(request.data) if request.data else 0}")
+    
     if not transcriber or not classifier:
         return jsonify({"error": "An AI model is not available. The server may be starting up."}), 503
 
@@ -150,13 +152,19 @@ def recognize_speech():
             # Fallback for other formats
             transcribed_text = str(transcription_result).strip()
         
+        print(f"WHISPER RAW TRANSCRIPTION: '{transcribed_text}'")
+
         if not transcribed_text:
-            return jsonify({"intent": "UNKNOWN", "entity": None, "transcription": ""})        # --- Step 3: Enhanced Intent Classification ---
+            return jsonify({"intent": "UNKNOWN", "entity": None, "transcription": ""})
+
+        # --- Step 3: Enhanced Intent Classification ---
         # Improved single word and phrase matching
         text_lower = transcribed_text.lower().strip()
         
         # Remove punctuation for better matching
         text_clean = text_lower.translate(str.maketrans('', '', string.punctuation))
+        
+        print(f"PROCESSING TEXT: '{text_lower}' -> cleaned: '{text_clean}'")
         
         # Enhanced single word commands
         single_word_mapping = {
@@ -199,6 +207,7 @@ def recognize_speech():
         
         if text_clean in single_word_mapping:
             best_intent = single_word_mapping[text_clean]
+            print(f"DIRECT MATCH: '{text_clean}' -> '{best_intent}'")
             
             # Set entity for exercise switches
             if best_intent == "switch exercise":
@@ -215,6 +224,7 @@ def recognize_speech():
                     
                 }
                 entity = exercise_name_mapping.get(text_clean)
+                print(f"EXERCISE ENTITY: '{entity}'")
         
         # If no direct match, try phrase matching and exercise detection
         if not best_intent:
@@ -266,6 +276,7 @@ def recognize_speech():
                     for variation, actual in exercise_variations.items():
                         if variation in text_clean:
                             matched_keyword = actual
+                            print(f"EXERCISE VARIATION DETECTED: '{variation}' -> '{actual}'")
                             break
                 
                 if matched_keyword:
@@ -282,6 +293,7 @@ def recognize_speech():
                         "high knee": "High Knees"
                     }
                     entity = exercise_name_mapping.get(matched_keyword, matched_keyword.title())
+                    print(f"EXERCISE DETECTED via keyword matching: '{matched_keyword}' -> entity: '{entity}'")
                 
                 # If still no match, try BART classification as last resort
                 if not best_intent:
@@ -299,10 +311,14 @@ def recognize_speech():
                         ]
                         
                         intent_result = classifier(context_text, classification_labels)
+                        print(f"BART INPUT: '{context_text}'")
+                        print(f"BART LABELS: {classification_labels}")
                         
                         if isinstance(intent_result, dict) and 'labels' in intent_result and intent_result['labels']:
                             bart_result = intent_result['labels'][0]
                             confidence_score = intent_result['scores'][0] if 'scores' in intent_result else 0.0
+                            
+                            print(f"BART CLASSIFICATION: '{bart_result}' (confidence: {confidence_score:.3f})")
                             
                             # Only accept BART result if confidence is reasonable
                             if confidence_score > 0.3:  # Require at least 30% confidence
@@ -320,13 +336,19 @@ def recognize_speech():
                                     "need rest": "add rest"
                                 }
                                 best_intent = bart_mapping.get(bart_result, "UNKNOWN")
+                                print(f"MAPPED BART RESULT: '{best_intent}'")
                             else:
+                                print(f"BART CONFIDENCE TOO LOW ({confidence_score:.3f}), setting to UNKNOWN")
                                 best_intent = "UNKNOWN"
                         else:
                             best_intent = "UNKNOWN"
+                            print(f"NO CLASSIFICATION FOUND, setting to UNKNOWN")
                     except Exception as e:
+                        print(f"BART CLASSIFICATION ERROR: {e}")
                         best_intent = "UNKNOWN"
         
+        print(f"FINAL INTENT: '{best_intent}'")
+
         # --- Step 4: Intent Normalization ---
         # Normalize intent names for consistency
         intent_mapping = {
@@ -398,12 +420,15 @@ def recognize_speech():
             "confidence": "high" if text_clean in ["start", "stop", "skip", "plank", "squat", "pushup", "bridge"] else "medium"
         }
         
+        print(f"FINAL RESPONSE: {response}")
         return jsonify(response)
 
     except Exception as e:
+        print(f"Error processing audio: {e}")
         return jsonify({"error": str(e)}), 500
 
 # --- Main Execution Block ---
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=True)
+
