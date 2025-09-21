@@ -51,7 +51,7 @@ function Workout() {
     const [userName, setUserName] = useState('');
     const [feedback, setFeedback] = useState({ feedback: 'Select an exercise or routine to start.', feedbackColor: 'green' });
     const [isWorkoutActive, setIsWorkoutActive] = useState(false);
-    const [currentExercise, setCurrentExercise] = useState(allExercises[0]);
+    const [currentExercise, setCurrentExercise] = useState(allExercises.find(ex => ex.name === 'Squat') || allExercises[0]);
     
     // State for workout routines
     const [showRoutineModal, setShowRoutineModal] = useState(false);
@@ -193,7 +193,7 @@ function Workout() {
         
         const customizationMessage = customizedRoutine ? " with your custom targets" : "";
         setFeedback({ feedback: `Starting routine: ${routine.name}`, feedbackColor: 'white' });
-        speak(`${routine.name} routine selected${customizationMessage}. Get ready!`);
+        speakIfEnabled(`${routine.name} routine selected${customizationMessage}. Get ready!`);
     };
 
     const handlePoseUpdate = (poseFeedback) => {
@@ -221,7 +221,7 @@ function Workout() {
                 setCurrentExercise(selected);
                 setActiveRoutine(null);
                 setUseCountdownTimer(false);
-                speak(`${exerciseName} selected.`);
+                speakIfEnabled(`${exerciseName} selected.`);
                 // Reset exercise state
                 setIsFormCorrect(false);
                 setFeedback({ feedback: 'Ready to start.', feedbackColor: 'white' });
@@ -245,7 +245,7 @@ function Workout() {
             setActiveRoutine(null);
             setUseCountdownTimer(config.useCountdown);
             
-            speak(`${selectedDurationExercise.name} selected with ${config.useCountdown ? 'countdown' : 'count-up'} timer for ${config.duration} seconds.`);
+            speakIfEnabled(`${selectedDurationExercise.name} selected with ${config.useCountdown ? 'countdown' : 'count-up'} timer for ${config.duration} seconds.`);
             
             // Reset exercise state
             setIsFormCorrect(false);
@@ -269,7 +269,7 @@ function Workout() {
             setIsWorkoutActive(false);
             setActiveRoutine(null);
             setFeedback({ feedback: 'Routine complete! Amazing work!', feedbackColor: 'green' });
-            speak("Routine complete. Amazing work!");
+            speakIfEnabled("Routine complete. Amazing work!");
             return;
         }
         const current = activeRoutine.exercises[exerciseIndex];
@@ -283,11 +283,11 @@ function Workout() {
         const newState = !isWorkoutActive;
         setIsWorkoutActive(newState);
         if (newState) {
-            speak("Workout started! Let's go!");
+            speakIfEnabled("Workout started! Let's go!");
         } else {
-            speak("Workout stopped. Great effort!");
+            speakIfEnabled("Workout stopped. Great effort!");
         }
-    }, [isWorkoutActive]);
+    }, [isWorkoutActive, speakIfEnabled]);
     
     // Effect to handle workout session logging and state reset
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -354,37 +354,37 @@ function Workout() {
                 const nextIndex = exerciseIndex + 1;
                 setExerciseIndex(nextIndex);
                 setCurrentExercise(activeRoutine.exercises[nextIndex]);
-                speak("Let's begin.");
+                speakIfEnabled("Let's begin.");
             }
         }
     }, [isResting, restTimeLeft, activeRoutine, exerciseIndex, isWorkoutActive]);
 
     const handleSkipExercise = useCallback(() => {
         if (!isWorkoutActive || !activeRoutine) return;
-        speak("Exercise skipped.");
+        speakIfEnabled("Exercise skipped.");
         logExercise();
         advanceToNextExercise();
-    }, [isWorkoutActive, activeRoutine, logExercise, advanceToNextExercise]);
+    }, [isWorkoutActive, activeRoutine, logExercise, advanceToNextExercise, speakIfEnabled]);
 
     const handleSkipRest = useCallback(() => {
         if (!isResting) return;
-        speak("Rest skipped. Let's continue!");
+        speakIfEnabled("Rest skipped. Let's continue!");
         setRestTimeLeft(0);
-    }, [isResting]);
+    }, [isResting, speakIfEnabled]);
 
     const handleAddRestTime = useCallback(() => {
         if(isResting) {
             // If already resting, add 15 seconds to current rest
             setRestTimeLeft(prev => prev + 15);
-            speak("15 seconds added to rest time.");
+            speakIfEnabled("15 seconds added to rest time.");
         } else {
             // If not resting, start a rest period of 15 seconds
             setIsResting(true);
             setRestTimeLeft(15);
             setFeedback({ feedback: 'Rest time added!', feedbackColor: 'cyan' });
-            speak("Rest break started. Take 15 seconds.");
+            speakIfEnabled("Rest break started. Take 15 seconds.");
         }
-    }, [isResting]);
+    }, [isResting, speakIfEnabled]);
 
     useEffect(() => {
         if (command) {
@@ -401,7 +401,7 @@ function Workout() {
                         console.log('START_WORKOUT command detected, isWorkoutActive:', isWorkoutActive);
                         if (!isWorkoutActive) {
                             console.log('Starting workout...');
-                            speak("Voice command confirmed. Starting workout!");
+                            speakIfEnabled("Voice command confirmed. Starting workout!");
                             handleWorkoutToggle();
                         } else {
                             console.log('Workout already active, ignoring start command');
@@ -411,7 +411,7 @@ function Workout() {
                         console.log('STOP_WORKOUT command detected, isWorkoutActive:', isWorkoutActive);
                         if (isWorkoutActive) {
                             console.log('Stopping workout...');
-                            speak("Voice command confirmed. Stopping workout.");
+                            speakIfEnabled("Voice command confirmed. Stopping workout.");
                             handleWorkoutToggle();
                         } else {
                             console.log('Workout not active, ignoring stop command');
@@ -419,25 +419,36 @@ function Workout() {
                         break;
                     case 'SKIP_EXERCISE':
                         console.log('SKIP_EXERCISE command detected');
-                        speak("Voice command confirmed.");
+                        speakIfEnabled("Voice command confirmed.");
                         if (isResting) handleSkipRest();
                         else handleSkipExercise();
                         break;
                     case 'ADD_REST': 
                         console.log('ADD_REST command detected');
-                        speak("Voice command confirmed.");
-                        handleAddRestTime(); // Remove the isResting check since handleAddRestTime now handles both cases
+                        console.log('Current state - activeRoutine:', activeRoutine, 'isWorkoutActive:', isWorkoutActive);
+                        
+                        // If we're doing a single exercise (no active routine), stop the workout
+                        if (!activeRoutine && isWorkoutActive) {
+                            console.log('Single exercise detected, stopping workout instead of adding rest');
+                            speakIfEnabled("Voice command confirmed. Ending workout.");
+                            handleWorkoutToggle();
+                        } else {
+                            // If we're in a routine, add rest time
+                            console.log('Routine active, adding rest time');
+                            speakIfEnabled("Voice command confirmed. Adding rest time.");
+                            handleAddRestTime();
+                        }
                         break;
                     case 'START_ROUTINE':
                         console.log('START_ROUTINE command detected, entity:', command.entity);
                         if(command.entity && !isWorkoutActive) {
-                            speak(`Voice command confirmed. Starting ${command.entity} routine.`);
+                            speakIfEnabled(`Voice command confirmed. Starting ${command.entity} routine.`);
                             startRoutine(command.entity);
                         }
                         break;
                     case 'SWITCH_EXERCISE':
                         console.log('SWITCH_EXERCISE command detected, entity:', command.entity);
-                        if (command.entity && !isWorkoutActive) {
+                        if (command.entity) {
                             console.log('Looking for exercise:', command.entity);
                             console.log('Available exercises:', allExercises.map(ex => ex.name));
                             
@@ -461,19 +472,20 @@ function Workout() {
                             console.log('Found exercise:', foundExercise);
                             if (foundExercise) {
                                 console.log('Switching to exercise:', foundExercise.name);
-                                speak(`Voice command confirmed. Switching to ${foundExercise.name}.`);
+                                speakIfEnabled(`Voice command confirmed. Switching to ${foundExercise.name}.`);
                                 handleExerciseChange(foundExercise.name);
                             } else {
                                 console.log('Exercise not found!');
-                                speak("Sorry, I didn't recognize that exercise.");
+                                speakIfEnabled("Sorry, I didn't recognize that exercise.");
                             }
                         } else {
-                            console.log('Cannot switch exercise - missing entity or workout active');
+                            console.log('Cannot switch exercise - missing entity');
+                            speakIfEnabled("Sorry, I didn't recognize which exercise you want to do.");
                         }
                         break;
                     default: 
                         console.log('Unknown command intent:', command.intent);
-                        speak("Sorry, I didn't understand that command.");
+                        speakIfEnabled("Sorry, I didn't understand that command.");
                         break;
                 }
                 
@@ -482,7 +494,7 @@ function Workout() {
                 clearCommand();
             }
         }
-    }, [command, isListening, isWorkoutActive, isResting, handleWorkoutToggle, handleExerciseChange, handleSkipExercise, handleSkipRest, handleAddRestTime, clearCommand]);
+    }, [command, isListening, isWorkoutActive, isResting, handleWorkoutToggle, handleExerciseChange, handleSkipExercise, handleSkipRest, handleAddRestTime, clearCommand, speakIfEnabled]);
 
     const handleLogout = () => {
         const isGuest = localStorage.getItem('isGuestSession') === 'true';
@@ -642,6 +654,7 @@ function Workout() {
                         isResting={isResting}
                         onSkipRest={handleSkipRest}
                         onAddRestTime={handleAddRestTime}
+                        speakIfEnabled={speakIfEnabled}
                     />
                 </div>
                 <StatusPanel

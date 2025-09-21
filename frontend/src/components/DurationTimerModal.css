@@ -1,116 +1,164 @@
+/* --- FONTS & VARIABLES --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+:root {
+    --bg-color: #1a202c; /* A softer, dark slate color */
+    --surface-color: #2d3748; /* A slightly lighter surface for cards */
+    --primary-accent: #6366f1; /* A modern, friendly indigo */
+    --text-primary: #edf2f7; /* Off-white for readability */
+    --text-secondary: #a0aec0; /* A light gray for secondary text */
+    --border-color: #4a5568;
+    --font-family: 'Inter', sans-serif;
+}
+
+/* --- BASE STYLES --- */
 .duration-modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(0, 0, 0, 0.7);
+    background-color: rgba(10, 10, 20, 0.8);
     display: flex;
     justify-content: center;
     align-items: center;
     z-index: 1000;
+    backdrop-filter: blur(5px);
 }
 
 .duration-modal {
-    background: linear-gradient(145deg, #1a1a1a, #2d2d2d);
-    border-radius: 12px;
-    padding: 24px;
-    max-width: 450px;
+    background-color: var(--bg-color);
+    border-radius: 16px; /* Softer corners */
+    padding: 32px;
+    max-width: 420px;
     width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-    box-shadow: 0 10px 30px rgba(0, 255, 0, 0.2);
-    border: 1px solid #00ff00;
-    color: white;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-family: var(--font-family);
 }
 
+/* --- HEADER --- */
 .duration-modal-header {
     text-align: center;
-    margin-bottom: 24px;
+    margin-bottom: 32px;
 }
 
 .duration-modal-header h3 {
     margin: 0 0 8px 0;
-    color: #00ff00;
-    font-size: 1.4em;
+    font-size: 1.5em;
+    font-weight: 700;
 }
 
 .duration-modal-header p {
     margin: 0;
-    color: #cccccc;
-    font-size: 1.1em;
+    color: var(--text-secondary);
+    font-size: 1em;
 }
 
+.duration-modal-header p strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* --- CONTENT & INPUTS --- */
 .duration-modal-content {
-    margin-bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    margin-bottom: 32px;
 }
 
-.duration-input-section {
-    margin-bottom: 24px;
-}
-
-.duration-input-section label {
+.input-section label {
     display: block;
-    margin-bottom: 8px;
-    color: #00ff00;
-    font-weight: bold;
+    margin-bottom: 12px;
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 0.9em;
 }
 
 .duration-input-group {
     display: flex;
     align-items: center;
-    gap: 8px;
-    justify-content: center;
+    justify-content: space-between;
 }
 
 .duration-btn {
-    background: #333;
-    border: 1px solid #00ff00;
-    color: #00ff00;
-    width: 40px;
-    height: 40px;
-    border-radius: 6px;
-    font-size: 1.2em;
-    font-weight: bold;
+    background: var(--surface-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%; /* Circular buttons are friendly */
+    font-size: 1.5em;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s ease, transform 0.2s ease;
 }
 
 .duration-btn:hover {
-    background: #00ff00;
-    color: #000;
+    background: var(--primary-accent);
+    border-color: var(--primary-accent);
+    transform: scale(1.05);
+}
+
+.duration-input-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .duration-input {
-    width: 80px;
-    height: 40px;
+    width: 100px;
     text-align: center;
-    font-size: 1.2em;
-    font-weight: bold;
-    background: #333;
-    border: 1px solid #00ff00;
-    color: #00ff00;
-    border-radius: 6px;
+    font-size: 2em; /* Make the number prominent */
+    font-weight: 700;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
     outline: none;
-}
-
-.duration-input:focus {
-    box-shadow: 0 0 0 2px rgba(0, 255, 0, 0.3);
+    padding: 0;
 }
 
 .duration-unit {
-    color: #cccccc;
-    font-size: 0.9em;
-    min-width: 60px;
+    color: var(--text-secondary);
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
-.timer-mode-section label {
-    display: block;
-    margin-bottom: 8px;
-    color: #00ff00;
-    font-weight: bold;
+/* Hide number input arrows */
+.duration-input::-webkit-outer-spin-button,
+.duration-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.duration-input {
+    width: 100px;
+    text-align: center;
+    font-size: 2em;
+    font-weight: 700;
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    outline: none;
+    padding: 0;
+
+    /* For compatibility */
+    -webkit-appearance: none; /* For Chrome, Safari, Opera */
+    -moz-appearance: textfield; /* For Firefox */
+    appearance: none; /* Standard */
+    margin: 0; /* Often needed with -webkit-appearance */
 }
 
+/* For more specific targeting if needed */
+.duration-input::-webkit-outer-spin-button,
+.duration-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* --- TIMER MODE OPTIONS --- */
 .timer-mode-options {
     display: flex;
     flex-direction: column;
@@ -120,27 +168,25 @@
 .timer-option {
     display: flex;
     align-items: center;
-    padding: 12px;
-    border: 2px solid #333;
-    border-radius: 8px;
+    padding: 16px;
+    border: 2px solid var(--border-color);
+    border-radius: 12px; /* Consistent rounded corners */
     cursor: pointer;
     transition: all 0.2s ease;
-    background: #1a1a1a;
+    background: var(--surface-color);
 }
 
 .timer-option:hover {
-    border-color: #00ff00;
-    background: #2a2a2a;
+    border-color: var(--primary-accent);
 }
 
 .timer-option.selected {
-    border-color: #00ff00;
-    background: rgba(0, 255, 0, 0.1);
+    border-color: var(--primary-accent);
+    background: rgba(99, 102, 241, 0.1);
 }
 
 .timer-option input[type="radio"] {
-    margin-right: 12px;
-    accent-color: #00ff00;
+    display: none; /* Hide the default radio button */
 }
 
 .timer-option-content {
@@ -149,26 +195,27 @@
 }
 
 .timer-option-content strong {
-    color: #00ff00;
+    color: var(--text-primary);
+    font-weight: 600;
     margin-bottom: 4px;
 }
 
 .timer-option-content span {
-    color: #cccccc;
+    color: var(--text-secondary);
     font-size: 0.9em;
 }
 
+/* --- NOTE & ACTIONS --- */
 .timer-note {
-    margin-top: 16px;
     padding: 12px;
-    background: rgba(0, 255, 0, 0.1);
-    border-radius: 6px;
-    border-left: 4px solid #00ff00;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-accent);
 }
 
 .timer-note p {
     margin: 0;
-    color: #cccccc;
+    color: var(--text-secondary);
     font-size: 0.9em;
 }
 
@@ -178,61 +225,32 @@
     justify-content: flex-end;
 }
 
-.duration-btn-secondary {
-    padding: 10px 20px;
-    background: transparent;
-    border: 1px solid #666;
-    color: #ccc;
-    border-radius: 6px;
+.btn-secondary, .btn-primary {
+    padding: 12px 24px;
+    border-radius: 8px;
     cursor: pointer;
+    font-weight: 600;
+    font-size: 1em;
+    border: none;
     transition: all 0.2s ease;
 }
 
-.duration-btn-secondary:hover {
-    border-color: #999;
-    background: #333;
+.btn-secondary {
+    background: var(--surface-color);
+    color: var(--text-primary);
 }
 
-.duration-btn-primary {
-    padding: 10px 20px;
-    background: #00ff00;
-    border: 1px solid #00ff00;
-    color: #000;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.2s ease;
+.btn-secondary:hover {
+    background: #4a5568;
 }
 
-.duration-btn-primary:hover {
-    background: #00cc00;
-    border-color: #00cc00;
-    transform: translateY(-1px);
+.btn-primary {
+    background: var(--primary-accent);
+    color: #fff;
 }
 
-/* Accessibility improvements */
-@media (prefers-reduced-motion: reduce) {
-    .duration-btn,
-    .timer-option,
-    .duration-btn-primary,
-    .duration-btn-secondary {
-        transition: none;
-    }
-}
-
-/* High contrast mode */
-@media (prefers-contrast: high) {
-    .duration-modal {
-        border: 2px solid #ffffff;
-        background: #000000;
-    }
-    
-    .timer-option {
-        border-color: #ffffff;
-    }
-    
-    .timer-option.selected {
-        background: #ffffff;
-        color: #000000;
-    }
+.btn-primary:hover {
+    background: #4f46e5;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
 }

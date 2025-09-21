@@ -107,6 +107,7 @@ def recognize_speech():
         return jsonify({"error": "An AI model is not available. The server may be starting up."}), 503
 
     audio_blob = request.data
+    print(f"[DEBUG] Received audio blob, size: {len(audio_blob)} bytes")
     
     try:
         # --- Step 1: Enhanced Audio Conversion ---
@@ -150,13 +151,20 @@ def recognize_speech():
             # Fallback for other formats
             transcribed_text = str(transcription_result).strip()
         
+        print(f"[DEBUG] WHISPER TRANSCRIPTION: '{transcribed_text}'")
+        
         if not transcribed_text:
-            return jsonify({"intent": "UNKNOWN", "entity": None, "transcription": ""})        # --- Step 3: Enhanced Intent Classification ---
+            print("[DEBUG] No transcription received, returning UNKNOWN")
+            return jsonify({"intent": "UNKNOWN", "entity": None, "transcription": ""})
+
+        # --- Step 3: Enhanced Intent Classification ---
         # Improved single word and phrase matching
         text_lower = transcribed_text.lower().strip()
         
         # Remove punctuation for better matching
         text_clean = text_lower.translate(str.maketrans('', '', string.punctuation))
+        
+        print(f"[DEBUG] Processing text: '{text_lower}' -> cleaned: '{text_clean}'")
         
         # Enhanced single word commands
         single_word_mapping = {
@@ -199,6 +207,7 @@ def recognize_speech():
         
         if text_clean in single_word_mapping:
             best_intent = single_word_mapping[text_clean]
+            print(f"[DEBUG] DIRECT MATCH found: '{text_clean}' -> '{best_intent}'")
             
             # Set entity for exercise switches
             if best_intent == "switch exercise":
@@ -218,6 +227,7 @@ def recognize_speech():
         
         # If no direct match, try phrase matching and exercise detection
         if not best_intent:
+            print(f"[DEBUG] No direct match, trying phrase matching and BART classification...")
             # Check for common phrases first
             if any(phrase in text_lower for phrase in ["start workout", "begin workout", "start exercise"]):
                 best_intent = "start workout"
@@ -225,7 +235,7 @@ def recognize_speech():
                 best_intent = "stop workout"
             elif any(phrase in text_lower for phrase in ["skip exercise", "next exercise"]):
                 best_intent = "skip exercise"
-            elif any(phrase in text_lower for phrase in ["add rest", "take rest"]):
+            elif any(phrase in text_lower for phrase in ["add rest", "take rest", "need rest", "need a rest", "i need rest", "i need a rest"]):
                 best_intent = "add rest"
             else:
                 # Check if it's an exercise name that wasn't caught by direct matching
@@ -295,14 +305,18 @@ def recognize_speech():
                             "start workout session", "begin workout", 
                             "stop workout session", "end workout",
                             "skip current exercise", "next exercise",
-                            "take a rest break", "need rest"
+                            "take a rest break", "need rest", "want rest", "request break"
                         ]
                         
                         intent_result = classifier(context_text, classification_labels)
+                        print(f"[DEBUG] BART INPUT: '{context_text}'")
+                        print(f"[DEBUG] BART RESULT: {intent_result}")
                         
                         if isinstance(intent_result, dict) and 'labels' in intent_result and intent_result['labels']:
                             bart_result = intent_result['labels'][0]
                             confidence_score = intent_result['scores'][0] if 'scores' in intent_result else 0.0
+                            
+                            print(f"[DEBUG] BART CLASSIFICATION: '{bart_result}' (confidence: {confidence_score:.3f})")
                             
                             # Only accept BART result if confidence is reasonable
                             if confidence_score > 0.3:  # Require at least 30% confidence
@@ -317,10 +331,14 @@ def recognize_speech():
                                     "skip current exercise": "skip exercise",
                                     "next exercise": "skip exercise",
                                     "take a rest break": "add rest",
-                                    "need rest": "add rest"
+                                    "need rest": "add rest",
+                                    "want rest": "add rest",
+                                    "request break": "add rest"
                                 }
                                 best_intent = bart_mapping.get(bart_result, "UNKNOWN")
+                                print(f"[DEBUG] MAPPED BART RESULT: '{best_intent}'")
                             else:
+                                print(f"[DEBUG] BART CONFIDENCE TOO LOW ({confidence_score:.3f}), setting to UNKNOWN")
                                 best_intent = "UNKNOWN"
                         else:
                             best_intent = "UNKNOWN"
@@ -398,6 +416,7 @@ def recognize_speech():
             "confidence": "high" if text_clean in ["start", "stop", "skip", "plank", "squat", "pushup", "bridge"] else "medium"
         }
         
+        print(f"[DEBUG] FINAL RESPONSE: {response}")
         return jsonify(response)
 
     except Exception as e:

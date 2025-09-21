@@ -25,36 +25,38 @@ const DurationTimerModal = ({ isOpen, onClose, onConfirm, exerciseName, defaultT
         <div className="duration-modal-overlay">
             <div className="duration-modal">
                 <div className="duration-modal-header">
-                    <h3>🏃‍♂️ Exercise Setup</h3>
+                    <h3>Exercise Setup</h3>
                     <p><strong>{exerciseName}</strong> is a duration exercise.</p>
                 </div>
 
                 <div className="duration-modal-content">
-                    <div className="duration-input-section">
-                        <label htmlFor="duration-input">Set your target time:</label>
+                    <div className="input-section">
+                        <label htmlFor="duration-input">Set your target time</label>
                         <div className="duration-input-group">
-                            <button 
+                            <button
                                 type="button"
                                 onClick={() => setCustomDuration(Math.max(10, customDuration - 5))}
-                                className="duration-btn duration-btn-decrease"
+                                className="duration-btn"
                                 aria-label="Decrease duration"
                             >
                                 -
                             </button>
-                            <input
-                                id="duration-input"
-                                type="number"
-                                value={customDuration}
-                                onChange={(e) => setCustomDuration(Math.max(10, parseInt(e.target.value) || 10))}
-                                min="10"
-                                max="300"
-                                className="duration-input"
-                            />
-                            <span className="duration-unit">seconds</span>
-                            <button 
+                            <div className="duration-input-wrapper">
+                                <input
+                                    id="duration-input"
+                                    type="number"
+                                    value={customDuration}
+                                    onChange={(e) => setCustomDuration(Math.max(10, parseInt(e.target.value) || 10))}
+                                    min="10"
+                                    max="300"
+                                    className="duration-input"
+                                />
+                                <span className="duration-unit">seconds</span>
+                            </div>
+                            <button
                                 type="button"
                                 onClick={() => setCustomDuration(Math.min(300, customDuration + 5))}
-                                className="duration-btn duration-btn-increase"
+                                className="duration-btn"
                                 aria-label="Increase duration"
                             >
                                 +
@@ -62,8 +64,8 @@ const DurationTimerModal = ({ isOpen, onClose, onConfirm, exerciseName, defaultT
                         </div>
                     </div>
 
-                    <div className="timer-mode-section">
-                        <label>Choose timer mode:</label>
+                    <div className="input-section">
+                        <label>Choose timer mode</label>
                         <div className="timer-mode-options">
                             <label className={`timer-option ${timerMode === 'countdown' ? 'selected' : ''}`}>
                                 <input
@@ -74,7 +76,7 @@ const DurationTimerModal = ({ isOpen, onClose, onConfirm, exerciseName, defaultT
                                     onChange={(e) => setTimerMode(e.target.value)}
                                 />
                                 <div className="timer-option-content">
-                                    <strong>⏳ Countdown</strong>
+                                    <strong>Countdown</strong>
                                     <span>Counts down from {customDuration}s to 0</span>
                                 </div>
                             </label>
@@ -87,7 +89,7 @@ const DurationTimerModal = ({ isOpen, onClose, onConfirm, exerciseName, defaultT
                                     onChange={(e) => setTimerMode(e.target.value)}
                                 />
                                 <div className="timer-option-content">
-                                    <strong>⏱️ Count-up</strong>
+                                    <strong>Count-up</strong>
                                     <span>Counts up from 0 to {customDuration}s</span>
                                 </div>
                             </label>
@@ -100,10 +102,10 @@ const DurationTimerModal = ({ isOpen, onClose, onConfirm, exerciseName, defaultT
                 </div>
 
                 <div className="duration-modal-actions">
-                    <button onClick={handleCancel} className="duration-btn-secondary">
+                    <button onClick={handleCancel} className="btn-secondary">
                         Cancel
                     </button>
-                    <button onClick={handleConfirm} className="duration-btn-primary">
+                    <button onClick={handleConfirm} className="btn-primary">
                         Start Exercise
                     </button>
                 </div>

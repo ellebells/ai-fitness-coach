@@ -16,6 +16,18 @@ function calculateAngle(p1, p2, p3) {
   return angleDeg;
 }
 
+// --- Console Spam Prevention ---
+// Track previous feedback to prevent console spam
+let previousFeedback = {};
+
+function logFeedbackOnce(exerciseName, feedback) {
+  const feedbackKey = `${exerciseName}-${feedback}`;
+  if (previousFeedback[exerciseName] !== feedbackKey) {
+    console.log(feedback);
+    previousFeedback[exerciseName] = feedbackKey;
+  }
+}
+
 
 // --- Repetition-Based Evaluations ---
 
@@ -25,95 +37,128 @@ export function evaluatePushup(keypoints, stage, repCounter) {
   let newStage = stage;
   let newRepCounter = repCounter;
   
-  console.log(`Push-up evaluation - Current stage: ${stage}, Rep count: ${repCounter}`);
-  
   try {
     const leftShoulder = keypoints.find(kp => kp.name === 'left_shoulder');
+    const rightShoulder = keypoints.find(kp => kp.name === 'right_shoulder');
     const leftElbow = keypoints.find(kp => kp.name === 'left_elbow');
+    const rightElbow = keypoints.find(kp => kp.name === 'right_elbow');
     const leftWrist = keypoints.find(kp => kp.name === 'left_wrist');
+    const rightWrist = keypoints.find(kp => kp.name === 'right_wrist');
     const leftHip = keypoints.find(kp => kp.name === 'left_hip');
     const leftKnee = keypoints.find(kp => kp.name === 'left_knee');
     
     if (leftShoulder.score > 0.5 && leftElbow.score > 0.5 && leftWrist.score > 0.5) {
-      const elbowAngle = calculateAngle(leftShoulder, leftElbow, leftWrist);
+      const leftElbowAngle = calculateAngle(leftShoulder, leftElbow, leftWrist);
       
-      // Check body alignment if hip and knee are visible
+      // Check for proper elbow positioning (not flaring out too much)
+      let elbowFlare = false;
+      if (rightShoulder.score > 0.5 && rightElbow.score > 0.5) {
+        // Calculate elbow-to-torso angle to detect flaring
+        const shoulderWidth = Math.abs(rightShoulder.x - leftShoulder.x);
+        const elbowSpread = Math.abs(rightElbow.x - leftElbow.x);
+        const flareRatio = elbowSpread / shoulderWidth;
+        elbowFlare = flareRatio > 1.4; // Elbows too wide relative to shoulders
+      }
+      
+      // Check body alignment (straight line from shoulders to knees/ankles)
       let bodyAligned = true;
       if (leftHip.score > 0.5 && leftKnee.score > 0.5) {
         const bodyAngle = calculateAngle(leftShoulder, leftHip, leftKnee);
-        bodyAligned = bodyAngle > 140; // More lenient body alignment
+        bodyAligned = bodyAngle > 160; // Stricter body alignment for proper plank
       }
       
-      console.log(`Elbow angle: ${elbowAngle.toFixed(1)}°, Body aligned: ${bodyAligned}`);
+      logFeedbackOnce('pushup-angles', `Elbow angle: ${leftElbowAngle.toFixed(1)}°, Body aligned: ${bodyAligned}, Elbow flare: ${elbowFlare}`);
       
+      // Form checks before counting reps
       if (!bodyAligned) {
-        feedback = 'Keep your back straight!';
+        feedback = 'Keep your spine straight! Form a straight line from head to heels.';
         feedbackColor = 'red';
+        return { feedback, feedbackColor, stage: newStage, repCount: newRepCounter };
+      }
+      
+      if (elbowFlare) {
+        feedback = 'Keep your elbows closer to your body! Don\'t flare them out too much.';
+        feedbackColor = 'orange';
         return { feedback, feedbackColor, stage: newStage, repCount: newRepCounter };
       }
       
       // Initialize stage based on current position if not set
       if (!newStage || (newStage !== 'up' && newStage !== 'down')) {
-        if (elbowAngle > 140) {
+        if (leftElbowAngle > 160) {  // Stricter - nearly fully extended
           newStage = 'up';
-          console.log('Initializing stage to "up" (arms extended)');
-        } else if (elbowAngle < 100) {
+          logFeedbackOnce('pushup-init', 'Initializing stage to "up" (arms fully extended)');
+        } else if (leftElbowAngle < 70) {  // Stricter - chest near ground
           newStage = 'down';
-          console.log('Initializing stage to "down" (arms bent)');
+          logFeedbackOnce('pushup-init', 'Initializing stage to "down" (chest lowered)');
         }
       }
       
-      // More flexible stage transitions with hysteresis
-      if (elbowAngle > 140) {  // Arms extended (easier threshold)
+      // Stricter stage transitions requiring full range of motion
+      if (leftElbowAngle > 160) {  // Arms fully extended (high plank position)
         if (newStage === 'down') {
           newStage = 'up';
           newRepCounter++;
-          feedback = 'Great push-up! 🎉';
+          feedback = 'Excellent push-up! 🎉';
           feedbackColor = 'green';
-          console.log(`REP COMPLETED! New count: ${newRepCounter}`);
+          logFeedbackOnce('pushup-rep', `REP COMPLETED! New count: ${newRepCounter}`);
         } else {
           newStage = 'up';
-          feedback = 'Good position! Now lower down.';
-          feedbackColor = 'green';
+          if (leftElbowAngle > 170) {
+            feedback = 'Perfect plank position! Now lower down slowly.';
+            feedbackColor = 'green';
+          } else {
+            feedback = 'Good! Fully extend your arms.';
+            feedbackColor = 'green';
+          }
         }
       }
-      // Arms bent (coming down)
-      else if (elbowAngle < 100) {  // More lenient threshold
-        if (newStage === 'up' || elbowAngle < 80) {
+      // Arms bent - descending or at bottom position
+      else if (leftElbowAngle < 70) {  // Stricter - chest must be very close to ground
+        if (newStage === 'up' || leftElbowAngle < 60) {
           newStage = 'down';
         }
         
-        if (elbowAngle < 80) {
-          feedback = 'Perfect depth! Now push up.';
+        if (leftElbowAngle < 60) {
+          feedback = 'Perfect depth! Chest almost touches ground. Push up!';
           feedbackColor = 'green';
         } else {
-          feedback = 'Go lower! Get your chest closer to the ground.';
+          feedback = 'Good! Lower your chest closer to the ground.';
           feedbackColor = 'yellow';
         }
       }
-      // In between positions
+      // In between positions - transitioning
       else {
         if (newStage === 'up') {
-          feedback = 'Keep going down...';
-          feedbackColor = 'blue';
+          if (leftElbowAngle < 120) {
+            feedback = 'Keep lowering... get your chest closer to the ground!';
+            feedbackColor = 'blue';
+          } else {
+            feedback = 'Start lowering down slowly...';
+            feedbackColor = 'cyan';
+          }
         } else if (newStage === 'down') {
-          feedback = 'Push up!';
-          feedbackColor = 'blue';
+          if (leftElbowAngle > 120) {
+            feedback = 'Keep pushing up... fully extend your arms!';
+            feedbackColor = 'blue';
+          } else {
+            feedback = 'Good! Now push up with control.';
+            feedbackColor = 'cyan';
+          }
         } else {
-          feedback = 'Get into starting position with arms extended.';
-          feedbackColor = 'cyan';
+          feedback = 'Get into high plank position with arms fully extended.';
+          feedbackColor = 'orange';
         }
       }
     } else {
-      feedback = 'Make sure your arms are fully visible.';
+      feedback = 'Position yourself so your arms and shoulders are fully visible.';
       feedbackColor = 'orange';
     }
   } catch (error) {
-    feedback = 'Could not see key body points.';
+    feedback = 'Could not detect proper body positioning.';
     feedbackColor = 'orange';
   }
   
-  console.log(`Push-up result - Stage: ${newStage}, Rep count: ${newRepCounter}, Feedback: ${feedback}`);
+  logFeedbackOnce('pushup', `Push-up result - Stage: ${newStage}, Rep count: ${newRepCounter}, Feedback: ${feedback}`);
   return { feedback, feedbackColor, stage: newStage, repCount: newRepCounter };
 }
 
@@ -123,7 +168,7 @@ export function evaluateSquat(keypoints, stage, repCounter) {
   let newStage = stage;
   let newRepCounter = repCounter;
   
-  console.log(`Squat evaluation - Current stage: ${stage}, Rep count: ${repCounter}`);
+  logFeedbackOnce('squat-eval', `Squat evaluation - Current stage: ${stage}, Rep count: ${repCounter}`);
   
   try {
     const leftHip = keypoints.find(kp => kp.name === 'left_hip');
@@ -132,52 +177,52 @@ export function evaluateSquat(keypoints, stage, repCounter) {
     if (leftHip.score > 0.5 && leftKnee.score > 0.5 && leftAnkle.score > 0.5) {
       const kneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle);
       
-      console.log(`Knee angle: ${kneeAngle.toFixed(1)}°, Hip Y: ${leftHip.y.toFixed(1)}, Knee Y: ${leftKnee.y.toFixed(1)}`);
+      logFeedbackOnce('squat-angles', `Knee angle: ${kneeAngle.toFixed(1)}°, Hip Y: ${leftHip.y.toFixed(1)}, Knee Y: ${leftKnee.y.toFixed(1)}`);
       
       // Initialize stage based on current position if not set
       if (!newStage || (newStage !== 'up' && newStage !== 'down')) {
-        if (kneeAngle > 140) {  // More lenient threshold for initialization
+        if (kneeAngle > 160) {  // Stricter threshold - must be nearly straight
           newStage = 'up';
-          console.log('Initializing stage to "up" (standing position)');
-        } else if (kneeAngle < 120) {  // More lenient threshold for initialization
+          logFeedbackOnce('squat-init', 'Initializing stage to "up" (standing position)');
+        } else if (kneeAngle < 100) {  // Stricter threshold - must be in deep squat
           newStage = 'down';
-          console.log('Initializing stage to "down" (squatting position)');
+          logFeedbackOnce('squat-init', 'Initializing stage to "down" (squatting position)');
         }
       }
       
-      // More flexible stage transitions with hysteresis to prevent bouncing
-      if (kneeAngle > 140) {  // Easier to reach standing position
+      // Stricter stage transitions requiring proper form
+      if (kneeAngle > 160) {  // Must be nearly straight to count as standing
         if (newStage === 'down') {
           // Only count rep if we were clearly in down position
           newStage = 'up';
           newRepCounter++;
-          feedback = 'Good Rep! 🎉';
+          feedback = 'Good Rep! ';
           feedbackColor = 'green';
-          console.log(`REP COMPLETED! New count: ${newRepCounter}`);
+          logFeedbackOnce('squat-rep', `REP COMPLETED! New count: ${newRepCounter}`);
         } else {
           newStage = 'up'; // Maintain up state
-          if (kneeAngle > 150) {
+          if (kneeAngle > 170) {
             feedback = 'Perfect standing position. Now squat down!';
             feedbackColor = 'green';
           } else {
-            feedback = 'Good! Keep standing tall.';
+            feedback = 'Good! Stand up fully straight.';
             feedbackColor = 'green';
           }
         }
       }
-      // Transition to down when clearly squatting
-      else if (kneeAngle < 120) {  // Easier to reach squatting position
-        // Only transition to down if we're coming from up or if clearly squatting
-        if (newStage === 'up' || kneeAngle < 110) {
+      // Transition to down when in proper squat position
+      else if (kneeAngle < 100 && leftHip.y >= leftKnee.y - 0.02) {  // Must squat deep AND get hips low
+        // Only transition to down if we're coming from up or if clearly squatting deep
+        if (newStage === 'up' || (kneeAngle < 90 && leftHip.y >= leftKnee.y)) {
           newStage = 'down';
         }
         
         // Provide feedback based on depth
         if (leftHip.y >= leftKnee.y) {
-          feedback = 'Great depth! Now stand up.';
+          feedback = 'Perfect squat depth! Now stand up.';
           feedbackColor = 'green';
         } else {
-          feedback = 'Go lower! Get your hips below knee level.';
+          feedback = 'Almost there! Get your hips just below knee level.';
           feedbackColor = 'yellow';
         }
       }
@@ -185,15 +230,25 @@ export function evaluateSquat(keypoints, stage, repCounter) {
       else {
         // Don't change stage during transitions, just give feedback
         if (newStage === 'up') {
-          feedback = 'Keep going down...';
-          feedbackColor = 'blue';
+          if (kneeAngle < 140) {
+            feedback = 'Keep going down... squat deeper!';
+            feedbackColor = 'blue';
+          } else {
+            feedback = 'Start squatting down...';
+            feedbackColor = 'cyan';
+          }
         } else if (newStage === 'down') {
-          feedback = 'Push up through your heels...';
-          feedbackColor = 'blue';
+          if (kneeAngle > 120) {
+            feedback = 'Push up through your heels... stand up fully!';
+            feedbackColor = 'blue';
+          } else {
+            feedback = 'Good depth! Now stand up completely.';
+            feedbackColor = 'cyan';
+          }
         } else {
           // Still in undefined state, provide guidance
-          feedback = 'Stand up straight to begin, then squat down.';
-          feedbackColor = 'cyan';
+          feedback = 'Stand up straight to begin, then squat down deep.';
+          feedbackColor = 'orange';
         }
       }
     } else {
@@ -205,7 +260,7 @@ export function evaluateSquat(keypoints, stage, repCounter) {
     feedbackColor = 'orange';
   }
   
-  console.log(`Squat result - Stage: ${newStage}, Rep count: ${newRepCounter}, Feedback: ${feedback}`);
+  logFeedbackOnce('squat', `Squat result - Stage: ${newStage}, Rep count: ${newRepCounter}, Feedback: ${feedback}`);
   return { feedback, feedbackColor, stage: newStage, repCount: newRepCounter };
 }
 
@@ -215,7 +270,7 @@ export function evaluateBridge(keypoints, stage, repCounter) {
     let newStage = stage;
     let newRepCounter = repCounter;
     
-    console.log(`Bridge evaluation - Current stage: ${stage}, Rep count: ${repCounter}`);
+    logFeedbackOnce('bridge-eval', `Bridge evaluation - Current stage: ${stage}, Rep count: ${repCounter}`);
     
     try {
         const leftShoulder = keypoints.find(kp => kp.name === 'left_shoulder');
@@ -225,16 +280,16 @@ export function evaluateBridge(keypoints, stage, repCounter) {
         if (leftShoulder.score > 0.5 && leftHip.score > 0.5 && leftKnee.score > 0.5) {
             const hipAngle = calculateAngle(leftShoulder, leftHip, leftKnee);
             
-            console.log(`Hip angle: ${hipAngle.toFixed(1)}°`);
+            logFeedbackOnce('bridge-angles', `Hip angle: ${hipAngle.toFixed(1)}°`);
             
             // Initialize stage based on current position if not set
             if (!newStage || (newStage !== 'up' && newStage !== 'down')) {
                 if (hipAngle > 150) {
                     newStage = 'up';
-                    console.log('Initializing stage to "up" (bridge lifted)');
+                    logFeedbackOnce('bridge-init', 'Initializing stage to "up" (bridge lifted)');
                 } else if (hipAngle < 120) {
                     newStage = 'down';
-                    console.log('Initializing stage to "down" (lying flat)');
+                    logFeedbackOnce('bridge-init', 'Initializing stage to "down" (lying flat)');
                 }
             }
             
@@ -243,9 +298,9 @@ export function evaluateBridge(keypoints, stage, repCounter) {
                 if (newStage === 'down') {
                     newStage = 'up';
                     newRepCounter++;
-                    feedback = 'Perfect bridge! 🎉 Now lower down.';
+                    feedback = 'Perfect bridge! Now lower down.';
                     feedbackColor = 'green';
-                    console.log(`REP COMPLETED! New count: ${newRepCounter}`);
+                    logFeedbackOnce('bridge-rep', `REP COMPLETED! New count: ${newRepCounter}`);
                 } else {
                     newStage = 'up';
                     feedback = 'Great bridge position! Hold briefly, then lower.';
@@ -283,7 +338,7 @@ export function evaluateBridge(keypoints, stage, repCounter) {
         feedbackColor = 'orange';
     }
     
-    console.log(`Bridge result - Stage: ${newStage}, Rep count: ${newRepCounter}, Feedback: ${feedback}`);
+    logFeedbackOnce('bridge', `Bridge result - Stage: ${newStage}, Rep count: ${newRepCounter}, Feedback: ${feedback}`);
     return { feedback, feedbackColor, stage: newStage, repCount: newRepCounter };
 }
 
@@ -293,7 +348,7 @@ export function evaluateLunge(keypoints, stage, repCounter) {
     let newStage = stage;
     let newRepCounter = repCounter;
     
-    console.log(`Lunge evaluation - Current stage: ${stage}, Rep count: ${repCounter}`);
+    logFeedbackOnce('lunge-eval', `Lunge evaluation - Current stage: ${stage}, Rep count: ${repCounter}`);
     
     try {
         const leftHip = keypoints.find(kp => kp.name === 'left_hip');
@@ -303,16 +358,16 @@ export function evaluateLunge(keypoints, stage, repCounter) {
         if (leftHip.score > 0.5 && leftKnee.score > 0.5 && leftAnkle.score > 0.5) {
             const kneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle);
             
-            console.log(`Knee angle: ${kneeAngle.toFixed(1)}°`);
+            logFeedbackOnce('lunge-angles', `Knee angle: ${kneeAngle.toFixed(1)}°`);
             
             // Initialize stage based on current position if not set
             if (!newStage || (newStage !== 'up' && newStage !== 'down')) {
                 if (kneeAngle > 140) {
                     newStage = 'up';
-                    console.log('Initializing stage to "up" (standing position)');
+                    logFeedbackOnce('lunge-init', 'Initializing stage to "up" (standing position)');
                 } else if (kneeAngle < 110) {
                     newStage = 'down';
-                    console.log('Initializing stage to "down" (lunge position)');
+                    logFeedbackOnce('lunge-init', 'Initializing stage to "down" (lunge position)');
                 }
             }
             
@@ -321,9 +376,9 @@ export function evaluateLunge(keypoints, stage, repCounter) {
                 if (newStage === 'down') {
                     newStage = 'up';
                     newRepCounter++;
-                    feedback = 'Perfect lunge! 🎉 Step into the next one.';
+                    feedback = 'Perfect lunge! Step into the next one.';
                     feedbackColor = 'green';
-                    console.log(`REP COMPLETED! New count: ${newRepCounter}`);
+                    logFeedbackOnce('lunge-rep', `REP COMPLETED! New count: ${newRepCounter}`);
                 } else {
                     newStage = 'up';
                     feedback = 'Good standing position. Now step into a lunge.';
@@ -366,7 +421,7 @@ export function evaluateLunge(keypoints, stage, repCounter) {
         feedbackColor = 'orange';
     }
     
-    console.log(`Lunge result - Stage: ${newStage}, Rep count: ${newRepCounter}, Feedback: ${feedback}`);
+    logFeedbackOnce('lunge', `Lunge result - Stage: ${newStage}, Rep count: ${newRepCounter}, Feedback: ${feedback}`);
     return { feedback, feedbackColor, stage: newStage, repCount: newRepCounter };
 }
 
@@ -376,7 +431,7 @@ export function evaluateHighKnees(keypoints, stage, repCounter) {
     let newStage = stage;
     let newRepCounter = repCounter;
     
-    console.log(`High Knees evaluation - Current stage: ${stage}, Rep count: ${repCounter}`);
+    logFeedbackOnce('high-knees-eval', `High Knees evaluation - Current stage: ${stage}, Rep count: ${repCounter}`);
     
     try {
         const leftHip = keypoints.find(kp => kp.name === 'left_hip');
@@ -393,16 +448,16 @@ export function evaluateHighKnees(keypoints, stage, repCounter) {
             const rightKneeHigh = rightKnee.y < avgHipY - 20;
             const anyKneeHigh = leftKneeHigh || rightKneeHigh;
             
-            console.log(`Left knee high: ${leftKneeHigh}, Right knee high: ${rightKneeHigh}, Any knee high: ${anyKneeHigh}`);
+            logFeedbackOnce('high-knees-position', `Left knee high: ${leftKneeHigh}, Right knee high: ${rightKneeHigh}, Any knee high: ${anyKneeHigh}`);
             
             // Initialize stage based on current position if not set
             if (!newStage || (newStage !== 'up' && newStage !== 'down')) {
                 if (anyKneeHigh) {
                     newStage = 'up';
-                    console.log('Initializing stage to "up" (knee raised)');
+                    logFeedbackOnce('high-knees-init', 'Initializing stage to "up" (knee raised)');
                 } else {
                     newStage = 'down';
-                    console.log('Initializing stage to "down" (both feet down)');
+                    logFeedbackOnce('high-knees-init', 'Initializing stage to "down" (both feet down)');
                 }
             }
             
@@ -411,9 +466,9 @@ export function evaluateHighKnees(keypoints, stage, repCounter) {
                 if (newStage === 'down') {
                     newStage = 'up';
                     newRepCounter++;
-                    feedback = 'Great knee lift! 🎉 Keep marching!';
+                    feedback = 'Great knee lift! Keep marching!';
                     feedbackColor = 'green';
-                    console.log(`REP COMPLETED! New count: ${newRepCounter}`);
+                    logFeedbackOnce('high-knees-rep', `REP COMPLETED! New count: ${newRepCounter}`);
                 } else {
                     newStage = 'up';
                     feedback = 'Perfect! Keep bringing those knees up!';
@@ -444,12 +499,12 @@ export function evaluateHighKnees(keypoints, stage, repCounter) {
         feedbackColor = 'orange';
     }
     
-    console.log(`High Knees result - Stage: ${newStage}, Rep count: ${newRepCounter}, Feedback: ${feedback}`);
+    logFeedbackOnce('high-knees', `High Knees result - Stage: ${newStage}, Rep count: ${newRepCounter}, Feedback: ${feedback}`);
     return { feedback, feedbackColor, stage: newStage, repCount: newRepCounter };
 }
 
 
-// --- Duration-Based Evaluations (UPDATED to return isCorrectForm) ---
+// --- Duration-Based Evaluations ---
 
 export function evaluatePlank(keypoints) {
   let feedback = 'Get into position.';
@@ -517,7 +572,7 @@ export function evaluateSuperman(keypoints, stage, repCounter) {
   let newStage = stage;
   let newRepCounter = repCounter;
   
-  console.log(`Superman evaluation - Current stage: ${stage}, Rep count: ${repCounter}`);
+  logFeedbackOnce('superman-eval', `Superman evaluation - Current stage: ${stage}, Rep count: ${repCounter}`);
   
   try {
     const leftShoulder = keypoints.find(kp => kp.name === 'left_shoulder');
@@ -531,16 +586,16 @@ export function evaluateSuperman(keypoints, stage, repCounter) {
       const legsLifted = leftAnkle.y < leftHip.y - 10; // Legs lifted at least 10 pixels
       const isLifted = armsLifted && legsLifted;
       
-      console.log(`Arms lifted: ${armsLifted}, Legs lifted: ${legsLifted}, Overall lifted: ${isLifted}`);
+      logFeedbackOnce('superman-position', `Arms lifted: ${armsLifted}, Legs lifted: ${legsLifted}, Overall lifted: ${isLifted}`);
       
       // Initialize stage based on current position if not set
       if (!newStage || (newStage !== 'up' && newStage !== 'down')) {
         if (isLifted) {
           newStage = 'up';
-          console.log('Initializing stage to "up" (lifted position)');
+          logFeedbackOnce('superman-init', 'Initializing stage to "up" (lifted position)');
         } else {
           newStage = 'down';
-          console.log('Initializing stage to "down" (lying flat position)');
+          logFeedbackOnce('superman-init', 'Initializing stage to "down" (lying flat position)');
         }
       }
       
@@ -550,9 +605,9 @@ export function evaluateSuperman(keypoints, stage, repCounter) {
           // Coming up from lying flat position - count a rep
           newStage = 'up';
           newRepCounter++;
-          feedback = 'Great lift! 🎉 Now lower back down.';
+          feedback = 'Great lift! Now lower back down.';
           feedbackColor = 'green';
-          console.log(`REP COMPLETED! New count: ${newRepCounter}`);
+          logFeedbackOnce('superman-rep', `REP COMPLETED! New count: ${newRepCounter}`);
         } else {
           newStage = 'up'; // Maintain up state
           feedback = 'Perfect form! Hold briefly, then lower down.';
@@ -581,7 +636,7 @@ export function evaluateSuperman(keypoints, stage, repCounter) {
     feedbackColor = 'orange';
   }
   
-  console.log(`Superman result - Stage: ${newStage}, Rep count: ${newRepCounter}, Feedback: ${feedback}`);
+  logFeedbackOnce('superman', `Superman result - Stage: ${newStage}, Rep count: ${newRepCounter}, Feedback: ${feedback}`);
   return { feedback, feedbackColor, stage: newStage, repCount: newRepCounter };
 }
 

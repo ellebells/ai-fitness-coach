@@ -50,6 +50,18 @@ body.theme-high-contrast .btn-secondary:hover {
     color: #ffffff !important;
 }
 
+body.theme-high-contrast .btn-voice {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 3px solid #ffffff !important;
+}
+
+body.theme-high-contrast .btn-voice:hover {
+    background: #cccccc !important;
+    color: #000000 !important;
+    border: 3px solid #cccccc !important;
+}
+
 body.theme-high-contrast .status-panel {
     background: #000000 !important;
     color: #ffffff !important;
@@ -85,6 +97,14 @@ body.theme-low-contrast {
     filter: contrast(0.6) brightness(1.3) !important;
 }
 
+/* Exclude video feed elements from low contrast filter */
+body.theme-low-contrast .video-feed-container,
+body.theme-low-contrast .video-feed-container *,
+body.theme-low-contrast video,
+body.theme-low-contrast canvas {
+    filter: none !important;
+}
+
 body.theme-low-contrast .workout-container {
     background: #f8f8f8 !important;
     color: #666666 !important;
@@ -110,6 +130,12 @@ body.theme-low-contrast .btn-secondary {
     background: #888888 !important;
     color: #ffffff !important;
     border: 1px solid #777777 !important;
+}
+
+body.theme-low-contrast .btn-voice {
+    background: #aa6bb7 !important;
+    color: #ffffff !important;
+    border: 1px solid #996ba3 !important;
 }
 
 body.theme-low-contrast .status-panel {

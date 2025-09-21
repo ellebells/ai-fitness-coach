@@ -1,5 +1,4 @@
 import React from 'react';
-import { speak } from '../utils/speechUtils';
 
 // Add rest-related props
 function Controls({ 
@@ -13,7 +12,8 @@ function Controls({
   activeRoutine,
   isResting,
   onSkipRest,
-  onAddRestTime 
+  onAddRestTime,
+  speakIfEnabled 
 }) {
   
   const handleExerciseChange = (exerciseName) => {
@@ -22,7 +22,7 @@ function Controls({
   };
 
   const handleShowRoutines = () => {
-    speak("Choose routine menu opened.");
+    speakIfEnabled("Choose routine menu opened.");
     onShowRoutines();
   };
 
