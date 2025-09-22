@@ -25,10 +25,10 @@ const SettingsModal = ({ isOpen, onClose, settings, onSettingsChange }) => {
         { key: 'N', action: 'Next exercise' },
         { key: 'P', action: 'Previous exercise' },
         { key: 'V', action: 'Toggle voice commands' },
-        { key: 'S', action: 'Open settings' },
+        { key: 'S', action: 'Toggle settings' },
         { key: 'Escape', action: 'Close modals' },
-        { key: '1-9', action: 'Select routine by number' },
-        { key: 'H', action: 'View history' },
+        { key: '1-9', action: 'Select exercise by number' },
+        { key: 'H', action: 'Toggle history page' },
         { key: 'L', action: 'Logout' }
     ];
 
@@ -209,12 +209,6 @@ const SettingsModal = ({ isOpen, onClose, settings, onSettingsChange }) => {
                             </div>
                         </div>
                     )}
-                </div>
-
-                <div className="settings-footer">
-                    <button className="btn-secondary" onClick={handleClose}>
-                        Close
-                    </button>
                 </div>
             </div>
         </div>

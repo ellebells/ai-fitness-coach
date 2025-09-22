@@ -10,7 +10,7 @@ export const usePoseNet = () => {
   useEffect(() => {
     async function initAndLoadModel() {
       try {
-        // --- THIS IS THE FIX ---
+        
         // Explicitly set the backend to WebGL to avoid the WebGPU bug
         await tf.setBackend('webgl');
         // -----------------------

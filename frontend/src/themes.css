@@ -6,10 +6,18 @@ body.theme-high-contrast {
     color: #ffffff !important;
 }
 
-body.theme-high-contrast * {
+body.theme-high-contrast *:not(video):not(canvas) {
     background-color: #000000 !important;
     color: #ffffff !important;
     border-color: #ffffff !important;
+}
+
+/* Exclude video feed elements from high contrast styling */
+body.theme-high-contrast .video-feed-container video,
+body.theme-high-contrast .video-feed-container canvas {
+    background-color: initial !important;
+    color: initial !important;
+    border-color: initial !important;
 }
 
 body.theme-high-contrast .workout-container {
@@ -73,6 +81,36 @@ body.theme-high-contrast .video-feed-container {
     border: 2px solid #ffffff !important;
 }
 
+/* High contrast feedback colors - using maximum specificity */
+body.theme-high-contrast .feedback-text.feedback-green {
+    color: #00ff00 !important; /* Bright green for good form */
+}
+
+body.theme-high-contrast .feedback-text.feedback-red {
+    color: #ff0000 !important; /* Bright red for bad form */
+}
+
+body.theme-high-contrast .feedback-text.feedback-orange {
+    color: #ffaa00 !important; /* Bright orange for warnings */
+}
+
+body.theme-high-contrast .feedback-text.feedback-yellow {
+    color: #ffff00 !important; /* Bright yellow for cautions */
+}
+
+body.theme-high-contrast .feedback-text.feedback-blue {
+    color: #4444ff !important; /* Bright blue for info */
+}
+
+body.theme-high-contrast .feedback-text.feedback-cyan {
+    color: #00ffff !important; /* Bright cyan for rest/info */
+}
+
+body.theme-high-contrast .feedback-text.feedback-white {
+    color: #ffffff !important; /* White for neutral feedback */
+}
+
+/* Fallback with lower specificity */
 body.theme-high-contrast .feedback-text {
     color: #ffffff !important;
     background: #000000 !important;
@@ -86,6 +124,41 @@ body.theme-high-contrast .workout-controls {
 
 body.theme-high-contrast select,
 body.theme-high-contrast input,
+body.theme-high-contrast .exercise-select {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border: 2px solid #ffffff !important;
+}
+
+/* History page specific styles for high contrast */
+body.theme-high-contrast .history-container {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border: 2px solid #ffffff !important;
+}
+
+body.theme-high-contrast .history-header {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border-bottom: 2px solid #ffffff !important;
+}
+
+body.theme-high-contrast .history-header h1 {
+    color: #ffffff !important;
+}
+
+body.theme-high-contrast .chart-section,
+body.theme-high-contrast .session-card {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border: 2px solid #ffffff !important;
+}
+
+body.theme-high-contrast .session-card h3 {
+    color: #ffffff !important;
+    border-bottom: 2px solid #ffffff !important;
+}
+
 body.theme-high-contrast .exercise-select {
     background: #000000 !important;
     color: #ffffff !important;
@@ -149,6 +222,40 @@ body.theme-low-contrast .feedback-text {
     opacity: 0.8 !important;
 }
 
+/* History page specific styles for low contrast */
+body.theme-low-contrast .history-container {
+    background: #f8f8f8 !important;
+    color: #666666 !important;
+}
+
+body.theme-low-contrast .history-header {
+    background: #e8e8e8 !important;
+    color: #666666 !important;
+    border-bottom: 1px solid #cccccc !important;
+}
+
+body.theme-low-contrast .history-header h1 {
+    color: #666666 !important;
+}
+
+body.theme-low-contrast .chart-section,
+body.theme-low-contrast .session-card {
+    background: #f0f0f0 !important;
+    color: #666666 !important;
+    border: 1px solid #dddddd !important;
+}
+
+body.theme-low-contrast .session-card h3 {
+    color: #666666 !important;
+    border-bottom: 1px solid #cccccc !important;
+}
+
+body.theme-low-contrast .exercise-select {
+    background: #f0f0f0 !important;
+    color: #666666 !important;
+    border: 1px solid #cccccc !important;
+}
+
 /* ===== NORMAL THEME ===== */
 body.theme-normal {
     /* Reset any filters or overrides */
@@ -165,7 +272,10 @@ body.font-size-small .workout-header h1 {
 }
 
 body.font-size-small .btn-primary,
-body.font-size-small .btn-secondary {
+body.font-size-small .btn-secondary,
+body.font-size-small .btn-voice,
+body.font-size-small .exercise-select,
+body.font-size-small select {
     font-size: 11px !important;
     padding: 6px 12px !important;
 }
@@ -179,7 +289,10 @@ body.font-size-large .workout-header h1 {
 }
 
 body.font-size-large .btn-primary,
-body.font-size-large .btn-secondary {
+body.font-size-large .btn-secondary,
+body.font-size-large .btn-voice,
+body.font-size-large .exercise-select,
+body.font-size-large select {
     font-size: 16px !important;
     padding: 12px 20px !important;
 }

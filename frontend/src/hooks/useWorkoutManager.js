@@ -6,13 +6,17 @@ export const useWorkoutManager = (isWorkoutActive, currentExercise, isFormCorrec
   const [timer, setTimer] = useState(0);
   const [stage, setStage] = useState('up'); // For rep-counting state machine
   const [sessionLog, setSessionLog] = useState([]);
+  const [timeWithCorrectForm, setTimeWithCorrectForm] = useState(0); // Track actual exercise time
   
   const timerIntervalRef = useRef(null);
+  const correctFormTimeRef = useRef(null);
 
   // This function logs a completed exercise to the session history
   const logExercise = useCallback((isFinalLog = false) => {
     const exerciseToLog = currentExercise;
-    const valueToLog = exerciseToLog.type === 'reps' ? repCount : timer;
+    // For duration exercises, use timeWithCorrectForm instead of timer
+    const valueToLog = exerciseToLog.type === 'reps' ? repCount : 
+                      (exerciseToLog.type === 'duration' ? timeWithCorrectForm : timer);
 
     if (valueToLog > 0) {
         const logEntry = {
@@ -34,7 +38,7 @@ export const useWorkoutManager = (isWorkoutActive, currentExercise, isFormCorrec
         });
     }
     return null; // Return null if not the final log
-  }, [currentExercise, repCount, timer]); // Removed sessionLog from dependencies
+  }, [currentExercise, repCount, timer, timeWithCorrectForm]);
 
   // This effect manages the timer for duration-based exercises
   useEffect(() => {
@@ -54,14 +58,28 @@ export const useWorkoutManager = (isWorkoutActive, currentExercise, isFormCorrec
           });
         }, 1000);
       }
+      
+      // Also track time with correct form
+      if (!correctFormTimeRef.current) {
+        correctFormTimeRef.current = setInterval(() => {
+          setTimeWithCorrectForm(prev => prev + 1);
+        }, 1000);
+      }
     } else {
       // If any condition is false, stop the timer
       clearInterval(timerIntervalRef.current);
       timerIntervalRef.current = null;
+      
+      // Stop tracking correct form time
+      clearInterval(correctFormTimeRef.current);
+      correctFormTimeRef.current = null;
     }
     
     // Cleanup function to clear the interval when the component unmounts or dependencies change
-    return () => clearInterval(timerIntervalRef.current);
+    return () => {
+      clearInterval(timerIntervalRef.current);
+      clearInterval(correctFormTimeRef.current);
+    };
   }, [isWorkoutActive, currentExercise.type, isFormCorrect, useCountdownTimer]);
 
   // This effect handles resetting state when the exercise changes
@@ -73,6 +91,7 @@ export const useWorkoutManager = (isWorkoutActive, currentExercise, isFormCorrec
     // Reset counters and stage for the new exercise
     setRepCount(0);
     setStage('up');
+    setTimeWithCorrectForm(0); // Reset correct form timer
     // Initialize timer based on mode
     if (currentExercise.type === 'duration') {
       setTimer(useCountdownTimer ? (currentExercise.target || 30) : 0);

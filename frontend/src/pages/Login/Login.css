@@ -9,7 +9,7 @@
     --border-color: #4a5568;
     --danger-color: #e53e3e;
     --danger-color-hover: #c53030;
-    --font-family: 'Inter', sans-serif; /* Assumes Inter is loaded globally */
+    --font-family: 'Inter', sans-serif;
 }
 
 /* Ensure full screen coverage */
@@ -36,7 +36,6 @@ html, body {
     top: 0;
     left: 0;
     background-color: var(--bg-color);
-    /* Background image is set via inline styles in React component */
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -44,23 +43,18 @@ html, body {
     font-family: var(--font-family);
     padding: 20px;
     box-sizing: border-box;
-    /* --- NEW --- */
-    /* Added transition for the new box-shadow border */
     transition: box-shadow 0.3s ease;
 }
 
-/* --- NEW --- */
 /* Add a full-screen inset border for high-contrast mode */
 body.theme-high .login-container {
     box-shadow: inset 0 0 0 3px #ffffff;
 }
 
-/* --- NEW --- */
 /* Add a full-screen inset border for normal-contrast mode */
 body.theme-normal .login-container {
     box-shadow: inset 0 0 0 3px var(--primary-accent);
 }
-
 
 .login-card {
     background-color: rgba(45, 55, 72, 0.95);
@@ -74,13 +68,11 @@ body.theme-normal .login-container {
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
-/* High contrast accessibility for login card */
 body.theme-high .login-card {
     background: #000000 !important;
     border: 2px solid #ffffff !important;
 }
 
-/* Normal contrast enhancement for login card */
 body.theme-normal .login-card {
     border: 2px solid var(--primary-accent) !important;
 }
@@ -113,18 +105,26 @@ body.theme-normal .login-card {
 }
 
 .login-input {
-    background-color: var(--bg-color);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    padding: 14px 20px;
-    font-size: 1em;
-    font-weight: 500;
-    color: var(--text-primary);
-    outline: none;
-    transition: all 0.2s ease;
-    width: 100%;
-    box-sizing: border-box;
-    min-height: 52px;
+    background-color: var(--bg-color) !important;
+    border: 1px solid var(--border-color) !important;
+    border-radius: 8px !important;
+    font-size: 1em !important;
+    font-weight: 600 !important;
+    color: var(--text-primary) !important;
+    outline: none !important;
+    transition: all 0.2s ease !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    height: 52px !important;
+    padding: 14px 20px !important;
+    /* Reset browser input defaults */
+    margin: 0 !important;
+    font-family: inherit !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    line-height: normal !important;
+    text-align: left !important;
 }
 
 .login-input::placeholder {
@@ -136,7 +136,6 @@ body.theme-normal .login-card {
     box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
 }
 
-/* High contrast accessibility for input */
 body.theme-high .login-input {
     background: #000000 !important;
     color: #ffffff !important;
@@ -144,7 +143,7 @@ body.theme-high .login-input {
 }
 
 body.theme-high .login-input:focus {
-    border: 3px solid #ffffff !important;
+    border: 2px solid #ffffff !important; /* MODIFIED: Border was already 2px, no need to change */
     box-shadow: 0 0 0 2px #ffffff !important;
 }
 
@@ -156,26 +155,28 @@ body.theme-high .login-input::placeholder {
 .btn {
     padding: 14px 20px;
     border-radius: 8px;
-    border: none;
     cursor: pointer;
     font-weight: 600;
     font-size: 1em;
     transition: all 0.2s ease;
-    min-height: 52px;
+    height: 52px;
     display: flex;
     align-items: center;
     justify-content: center;
-    /* --- NEW --- */
-    /* Make buttons take up the full width to match the input field */
     width: 100%;
+    border: none;
+    text-decoration: none;
+    line-height: normal;
 }
 
 .btn-primary {
     background: var(--primary-accent);
     color: white;
+    border: 1px solid var(--primary-accent);
 }
 .btn-primary:hover {
     background: var(--primary-accent-hover);
+    border-color: var(--primary-accent-hover);
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3);
 }
@@ -196,10 +197,9 @@ body.theme-high .login-input::placeholder {
     color: var(--text-secondary);
     font-size: 0.9em;
     padding: 8px 16px;
-    min-height: auto;
-    /* --- NEW --- */
-    /* The Manage Profiles button should NOT be full-width */
+    height: auto; /* MODIFIED: Let this button size itself */
     width: auto;
+    border: none; /* MODIFIED: Tertiary button doesn't need a border */
 }
 .btn-tertiary:hover {
     color: var(--text-primary);
@@ -241,13 +241,10 @@ body.theme-high .btn-tertiary:hover {
 }
 
 /* --- Profile Management --- */
-/* (No changes in this section) */
 .profile-management {
     margin-top: 24px;
     border-top: 1px solid var(--border-color);
     padding-top: 24px;
-    /* --- NEW --- */
-    /* Center the auto-width "Manage Profiles" button */
     display: flex;
     justify-content: center;
 }
@@ -342,7 +339,6 @@ body.theme-high .btn-tertiary:hover {
 }
 
 /* --- Contrast Toggle --- */
-/* (No changes in this section) */
 .contrast-toggle-container {
     position: absolute;
     top: 20px;

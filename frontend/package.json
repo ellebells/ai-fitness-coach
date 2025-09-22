@@ -24,6 +24,11 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "test:evaluation": "react-scripts test --testPathPattern=evaluation --watchAll=false",
+    "test:coverage": "react-scripts test --coverage --watchAll=false",
+    "test:evaluation:coverage": "react-scripts test --testPathPattern=evaluation --coverage --watchAll=false",
+    "evaluation:academic": "node src/tests/evaluation/academicEvaluation.js",
+    "evaluation:report": "node src/tests/evaluation/academicEvaluation.js",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {

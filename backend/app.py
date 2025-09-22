@@ -26,7 +26,7 @@ try:
     )
     print("Whisper model loaded successfully.")
 except Exception as e:
-    print(f"CRITICAL ERROR: Could not load Whisper model: {e}")
+    print(f"CRITICAL ERROR: Could not load Whihisper model: {e}")
     transcriber = None
 
 # Model 2: Intent Classification (Facebook BART Large MNLI - Pre-trained)
@@ -231,11 +231,17 @@ def recognize_speech():
             # Check for common phrases first
             if any(phrase in text_lower for phrase in ["start workout", "begin workout", "start exercise"]):
                 best_intent = "start workout"
-            elif any(phrase in text_lower for phrase in ["stop workout", "end workout", "quit workout"]):
+            elif any(phrase in text_lower for phrase in ["stop workout", "end workout", "quit workout", "stop exercise", "end exercise"]):
                 best_intent = "stop workout"
             elif any(phrase in text_lower for phrase in ["skip exercise", "next exercise"]):
                 best_intent = "skip exercise"
-            elif any(phrase in text_lower for phrase in ["add rest", "take rest", "need rest", "need a rest", "i need rest", "i need a rest"]):
+            elif any(phrase in text_lower for phrase in [
+                "need rest", "need a rest", "i need rest", "i need a rest",
+                "take a rest", "need a break", "i need a break", "need to rest", "need to take a rest",
+                "want to rest", "want a break", "have a rest", "take a break"
+            ]):
+                best_intent = "stop workout"
+            elif any(phrase in text_lower for phrase in ["add rest", "take rest"]):
                 best_intent = "add rest"
             else:
                 # Check if it's an exercise name that wasn't caught by direct matching

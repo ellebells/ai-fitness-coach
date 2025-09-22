@@ -3,6 +3,7 @@ import React from 'react';
 // Add rest-related props
 function Controls({ 
   exercises, 
+  currentExercise,
   onExerciseChange, 
   onWorkoutToggle, 
   isWorkoutActive, 
@@ -54,7 +55,11 @@ function Controls({
     <div className="controls-container">
       <div className="control-group">
         <label>Single Exercise:</label>
-        <select onChange={(e) => handleExerciseChange(e.target.value)} disabled={isWorkoutActive}>
+        <select 
+          value={currentExercise?.name || ''} 
+          onChange={(e) => handleExerciseChange(e.target.value)} 
+          disabled={isWorkoutActive}
+        >
           {exercises.map(ex => (
             <option key={ex.name} value={ex.name}>{ex.name}</option>
           ))}

@@ -293,15 +293,22 @@ function Workout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
       if (!isWorkoutActive && (sessionLog.length > 0 || logExercise(true))) {
-          const user = localStorage.getItem('userName') || 'guest';
-          const history = JSON.parse(localStorage.getItem(`${user}_history`)) || [];
           const finalLog = logExercise(true); 
           let completeLog = [...sessionLog];
           if(finalLog && !sessionLog.find(l => l.timestamp === finalLog.timestamp)) {
               completeLog.push(finalLog);
           }
           
-          if (completeLog.length > 0) {
+          // Only log sessions that have meaningful activity 
+          // Duration exercises need at least 10 seconds, rep exercises need at least 3 reps
+          const hasValidActivity = completeLog.some(log => 
+            (log.type === 'duration' && log.completed >= 10) || 
+            (log.type === 'reps' && log.completed >= 3)
+          );
+          
+          if (completeLog.length > 0 && hasValidActivity) {
+            const user = localStorage.getItem('userName') || 'guest';
+            const history = JSON.parse(localStorage.getItem(`${user}_history`)) || [];
             const newHistory = [...history, { date: new Date().toISOString(), workout: completeLog }];
             localStorage.setItem(`${user}_history`, JSON.stringify(newHistory));
           }
@@ -556,12 +563,16 @@ function Workout() {
                         startListening();
                     }
                     break;
-                case 's': // S - Open settings
+                case 's': // S - Toggle settings
                     event.preventDefault();
-                    setShowSettingsModal(true);
+                    setShowSettingsModal(prev => !prev);
                     break;
-                case 'h': // H - View history
-                    navigate('/history');
+                case 'h': // H - Toggle history
+                    if (window.location.pathname === '/history') {
+                        navigate('/workout');
+                    } else {
+                        navigate('/history');
+                    }
                     break;
                 case 'l': // L - Logout
                     handleLogout();
@@ -575,13 +586,11 @@ function Workout() {
                 case '7':
                 case '8':
                 case '9':
-                    // Number keys for routine selection
-                    const routineNumber = parseInt(event.key);
-                    const routineKeys = Object.keys(workoutTemplates);
-                    if (routineNumber <= routineKeys.length) {
-                        const routineKey = routineKeys[routineNumber - 1];
-                        const routine = workoutTemplates[routineKey];
-                        startRoutine(routine);
+                    // Number keys for exercise selection
+                    const exerciseNumber = parseInt(event.key);
+                    if (exerciseNumber <= allExercises.length) {
+                        const selectedExercise = allExercises[exerciseNumber - 1];
+                        handleExerciseChange(selectedExercise.name);
                     }
                     break;
                 default:
@@ -644,6 +653,7 @@ function Workout() {
                     />
                     <Controls
                         exercises={allExercises}
+                        currentExercise={currentExercise}
                         onExerciseChange={handleExerciseChange}
                         onWorkoutToggle={handleWorkoutToggle}
                         isWorkoutActive={isWorkoutActive}
@@ -670,6 +680,7 @@ function Workout() {
                     restTimeLeft={restTimeLeft}
                     isFormCorrect={isFormCorrect}
                     isWorkoutActive={isWorkoutActive}
+                    settings={settings}
                 />
             </main>
         </div>

@@ -104,6 +104,16 @@
   flex-direction: column;
   overflow: hidden; /* Prevent scrolling */
   max-height: 100%; /* Ensure it fits within viewport */
+  min-height: 0; /* Allow flex children to shrink */
+}
+
+.status-panel-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* Allow scrolling for content */
+  min-height: 0; /* Allow flex children to shrink */
+  margin-bottom: 10px; /* Space between content and voice command */
 }
 
 .status-panel-container h2 {
@@ -134,10 +144,12 @@ select {
 .btn-voice {
   background-color: #9c27b0; /* Purple color */
   color: white;
+  border: 2px solid #7b1fa2; /* Added border */
 }
 
 .btn-voice:hover {
   background-color: #7b1fa2;
+  border-color: #6a1b9a; /* Darker border on hover */
 }
 
 .counter-display {
@@ -217,10 +229,10 @@ select {
 
 /* Styles for the voice command display */
 .voice-command-display {
-    margin-top: auto; /* Pushes to the bottom */
     padding-top: 10px;
     border-top: 1px solid #444;
     flex-shrink: 0; /* Prevent shrinking */
+    margin-top: 0; /* Remove auto margin */
 }
 
 /* Workout controls in the Controls component */
@@ -237,84 +249,116 @@ select {
 /* ===== ACCESSIBILITY THEMES ===== */
 
 /* High Contrast Theme */
-body.theme-high-contrast {
+body.theme-high {
     background: #000 !important;
     color: #fff !important;
 }
 
-body.theme-high-contrast .workout-container {
+body.theme-high .workout-container {
     background: #000 !important;
     color: #fff !important;
 }
 
-body.theme-high-contrast .workout-header {
+body.theme-high .workout-header {
     background-color: #000 !important;
     color: #fff !important;
     border: 2px solid #fff !important;
 }
 
-body.theme-high-contrast .workout-header h1 {
+body.theme-high .workout-header h1 {
     color: #fff !important;
 }
 
-body.theme-high-contrast .user-info {
+body.theme-high .user-info {
     color: #fff !important;
 }
 
-body.theme-high-contrast .btn-primary {
+body.theme-high .btn-primary {
     background: #fff !important;
     color: #000 !important;
     border: 2px solid #fff !important;
 }
 
-body.theme-high-contrast .btn-primary:hover {
+body.theme-high .btn-primary:hover {
     background: #000 !important;
     color: #fff !important;
     border: 2px solid #fff !important;
 }
 
-body.theme-high-contrast .btn-secondary {
+body.theme-high .btn-secondary {
     background: #000 !important;
     color: #fff !important;
     border: 2px solid #fff !important;
 }
 
-body.theme-high-contrast .btn-secondary:hover {
+body.theme-high .btn-secondary:hover {
     background: #fff !important;
     color: #000 !important;
 }
 
-body.theme-high-contrast .status-panel {
+body.theme-high .status-panel {
     background: #000 !important;
     color: #fff !important;
     border: 2px solid #fff !important;
 }
 
-body.theme-high-contrast .video-feed-container {
+body.theme-high .video-feed-container {
     border: 2px solid #fff !important;
     background: #000 !important;
 }
 
-body.theme-high-contrast .feedback-text {
-    color: #fff !important;
+/* High contrast feedback colors using CSS custom properties */
+body.theme-high {
+  --feedback-text-color: #ffffff;
+}
+
+body.theme-high .feedback-text {
     text-shadow: 2px 2px 4px #000 !important;
 }
 
-body.theme-high-contrast .exercise-select,
-body.theme-high-contrast select,
-body.theme-high-contrast input {
+body.theme-high .feedback-text[data-feedback-color="green"] {
+    --feedback-text-color: #00ff00 !important;
+}
+
+body.theme-high .feedback-text[data-feedback-color="red"] {
+    --feedback-text-color: #ff0000 !important;
+}
+
+body.theme-high .feedback-text[data-feedback-color="orange"] {
+    --feedback-text-color: #ffaa00 !important;
+}
+
+body.theme-high .feedback-text[data-feedback-color="yellow"] {
+    --feedback-text-color: #ffff00 !important;
+}
+
+body.theme-high .feedback-text[data-feedback-color="blue"] {
+    --feedback-text-color: #4444ff !important;
+}
+
+body.theme-high .feedback-text[data-feedback-color="cyan"] {
+    --feedback-text-color: #00ffff !important;
+}
+
+body.theme-high .feedback-text[data-feedback-color="white"] {
+    --feedback-text-color: #ffffff !important;
+}
+
+body.theme-high .exercise-select,
+body.theme-high select,
+body.theme-high input {
     background: #000 !important;
     color: #fff !important;
     border: 2px solid #fff !important;
 }
 
-body.theme-high-contrast .exercise-select:focus,
-body.theme-high-contrast select:focus,
-body.theme-high-contrast input:focus {
+body.theme-high .exercise-select:focus,
+body.theme-high select:focus,
+body.theme-high input:focus {
     outline: 3px solid #fff !important;
 }
 
-body.theme-high-contrast .workout-controls {
+body.theme-high .workout-controls {
     background: #000 !important;
     border: 1px solid #fff !important;
 }
@@ -385,7 +429,10 @@ body.font-size-small .workout-header h1 {
 }
 
 body.font-size-small .btn-primary,
-body.font-size-small .btn-secondary {
+body.font-size-small .btn-secondary,
+body.font-size-small .btn-voice,
+body.font-size-small .exercise-select,
+body.font-size-small select {
     font-size: 11px !important;
     padding: 6px 12px !important;
 }
@@ -399,7 +446,10 @@ body.font-size-large .workout-header h1 {
 }
 
 body.font-size-large .btn-primary,
-body.font-size-large .btn-secondary {
+body.font-size-large .btn-secondary,
+body.font-size-large .btn-voice,
+body.font-size-large .exercise-select,
+body.font-size-large select {
     font-size: 16px !important;
     padding: 12px 20px !important;
 }
