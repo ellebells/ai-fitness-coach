@@ -1,6 +1,5 @@
 Orchestrating AI models to achieve a goal.The AI Fitness Coach is a browser-based application that uses multiple pre-trained AI models to provide real-time feedback and guidance for a variety of physical exercises. It acts as a virtual personal trainer, helping users improve their form, count repetitions, and follow structured workout routines, all from the privacy of their own home.
 
-<<<<<<< HEAD
 This project was developed based on the "Orchestrating AI models to achieve a goal" template. It is a full-stack web application built with React, Flask, and TensorFlow.js.
 =======
 The core of the project is the successful orchestration of three distinct AI models operating on different data types, which are vision, audio, and language to create a seamless, interactive, and intelligent coaching experience.
